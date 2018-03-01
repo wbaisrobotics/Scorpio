@@ -153,6 +153,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 		elevator.elevateUpDown(copilot.getY(Hand.kRight));
+		
 	}
 
 	/**
