@@ -9,12 +9,12 @@ public class Elevator {
 
 	private WPI_TalonSRX motor;
 	private Encoder encoder;
-	private DigitalInput input;
+	private DigitalInput bottomLimitSW;
 	
 	public static final double MAX_HEIGHT = 1000; // in pulses
 	
-	Elevator (int talonPort, int limitSwitchPort, int encoderA, int encoderB){
-		input = new DigitalInput (limitSwitchPort);
+	public Elevator (int talonPort, int limitSwitchPort, int encoderA, int encoderB){
+		bottomLimitSW = new DigitalInput (limitSwitchPort);
 		motor = new WPI_TalonSRX (talonPort);
 		encoder = new Encoder (encoderA, encoderB);
 	}
@@ -29,7 +29,7 @@ public class Elevator {
 	
 	public boolean atBottom() {
 		// True reading repesents the bottom limit switch being pressed
-		return input.get() || (getCurrentHeight()<=0);
+		return bottomLimitSW.get() || (getCurrentHeight()<=0);
 	}
 	
 	public void elevateUpDown (double speed) {
@@ -43,14 +43,6 @@ public class Elevator {
 		else {
 			this.motor.set(speed);
 		}
-	}
-
-	public void up() {
-		elevateUpDown(-0.5);
-	}
-
-	public void down() {
-		elevateUpDown(0.5);
 	}
 
 	public void stop() {

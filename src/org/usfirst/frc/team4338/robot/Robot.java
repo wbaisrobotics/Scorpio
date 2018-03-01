@@ -98,7 +98,8 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void robotInit() {
 		
-		drive = new DifferentialDrive (new WPI_TalonSRX (DRIVE_LEFT), new WPI_TalonSRX (DRIVE_RIGHT));
+		drive = new DifferentialDrive (new WPI_TalonSRX (CANWiring.DRIVE_LEFT.m_port), 
+				new WPI_TalonSRX (CANWiring.DRIVE_RIGHT.m_port));
 		elevator = new Elevator (CANWiring.ELEVATOR.m_port, DIOWiring.ELEVATOR_BOTTOM_SW.m_port, 
 				DIOWiring.ELEVATOR_ENCODER_A.m_port, DIOWiring.ELEVATOR_ENCODER_B.m_port);
 				
