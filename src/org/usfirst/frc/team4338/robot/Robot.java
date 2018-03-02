@@ -35,8 +35,8 @@ public class Robot extends IterativeRobot {
 		DRIVE_RIGHT_A(8),
 		DRIVE_RIGHT_B(7),
 		INTAKE_SW(9),
-		RAMP_LEFT_SW(2),
-		RAMP_RIGHT_SW(20),
+		TEAMMATE_LIFTER_LEFT_SW(2),
+		TEAMMATE_LIFTER_RIGHT_SW(20),
 		ELEVATOR_BOTTOM_SW(18),
 		FORK_EXTENDED_SW(13);
 		
@@ -52,12 +52,12 @@ public class Robot extends IterativeRobot {
 		DRIVE_LEFT (2),
 		INTAKE_LEFT (3), 
 		ELEVATOR (4),
-		RAMP_LIFT_LEFT (5),
+		TEAMMATE_LIFTER_LEFT (5),
 		FORK (6),
-		RAMP_LIFT_RIGHT (7),
+		TEAMMATE_LIFTER_RIGHT (7),
 		INTAKE_RIGHT (8),
-		RAMP_LOWER_LEFT (9),
-		RAMP_LOWER_RIGHT (10),
+		RAMP_LEFT (9),
+		RAMP_RIGHT (10),
 		DRIVE_RIGHT (11);
 		
 		private int m_port;
@@ -87,6 +87,9 @@ public class Robot extends IterativeRobot {
 	
 	private DifferentialDrive drive;
 	private Elevator elevator;
+	private Intake intake;
+	private Fork fork;
+	private Ramp ramp;
 	
 	private XboxController pilot;
 	private XboxController copilot;
@@ -102,7 +105,13 @@ public class Robot extends IterativeRobot {
 				new WPI_TalonSRX (CANWiring.DRIVE_RIGHT.m_port));
 		elevator = new Elevator (CANWiring.ELEVATOR.m_port, DIOWiring.ELEVATOR_BOTTOM_SW.m_port, 
 				DIOWiring.ELEVATOR_ENCODER_A.m_port, DIOWiring.ELEVATOR_ENCODER_B.m_port);
-				
+		intake = new Intake (CANWiring.INTAKE_LEFT.m_port, CANWiring.INTAKE_RIGHT.m_port,
+				PCMWiring.INTAKE_B.m_port);
+		fork = new Fork (CANWiring.FORK.m_port, DIOWiring.FORK_EXTENDED_SW.m_port, DIOWiring.FORK_RETRACTED_SW.m_port,
+				PCMWiring.GRIPPER_A.m_port, PCMWiring.GRIPPER_B.m_port, PCMWiring.RELEASE_A.m_port, PCMWiring.RELEASE_B.m_port);
+		ramp = new Ramp (CANWiring.RAMP_LEFT.m_port, CANWiring.RAMP_RIGHT.m_port,
+				CANWiring.TEAMMATE_LIFTER_LEFT.m_port, CANWiring.TEAMMATE_LIFTER_RIGHT.m_port,
+				DIOWiring.TEAMMATE_LIFTER_LEFT_SW.m_port, DIOWiring.TEAMMATE_LIFTER_RIGHT_SW.m_port);
 		
 		pilot = new XboxController (0);
 		copilot = new XboxController (1);
@@ -152,7 +161,6 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		elevator.elevateUpDown(copilot.getY(Hand.kRight));
 		
 	}
 
