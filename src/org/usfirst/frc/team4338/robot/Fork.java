@@ -94,6 +94,10 @@ public class Fork {
 	public void holdFork() {
 		this.releaser.set(Value.kReverse);
 	}
+	
+	public void toggleReleaseFork () {
+		releaser.set((releaser.get()==Value.kForward)?Value.kReverse:Value.kForward);
+	}
 
 	// ----------- Gripping cubes -----------
 	
@@ -103,6 +107,10 @@ public class Fork {
 
 	public void closeGripper() {
 		this.gripper.set(Value.kForward);
+	}
+	
+	public void toggleGripper () {
+		gripper.set((gripper.get()==Value.kForward)?Value.kReverse:Value.kForward);
 	}
 
 }

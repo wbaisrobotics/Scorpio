@@ -7,12 +7,16 @@
 
 package org.usfirst.frc.team4338.robot;
 
+import org.usfirst.frc.team4338.robot.autonomousData.GameInfo;
+import org.usfirst.frc.team4338.robot.autonomousData.StartingPosition;
+import org.usfirst.frc.team4338.robot.autonomousData.Target;
+
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
-import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -79,13 +83,14 @@ public class Robot extends IterativeRobot {
 		}
 	}
 
+	private GameInfo m_gameInfo;
+	private StartingPosition m_startPos;
+	private Target m_autonomousTarget;	
 	
-	private static final String kDefaultAuto = "Default";
-	private static final String kCustomAuto = "My Auto";
-	private String m_autoSelected;
-	private SendableChooser<String> m_chooser = new SendableChooser<>();
+	private SendableChooser<StartingPosition> m_startingPositionChooser = new SendableChooser<>();
+	private SendableChooser<Target> m_targetLocationChooser = new SendableChooser<>();
 	
-	private DifferentialDrive drive;
+	private Drive drive;
 	private Elevator elevator;
 	private Intake intake;
 	private Fork fork;
@@ -101,8 +106,9 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void robotInit() {
 		
-		drive = new DifferentialDrive (new WPI_TalonSRX (CANWiring.DRIVE_LEFT.m_port), 
-				new WPI_TalonSRX (CANWiring.DRIVE_RIGHT.m_port));
+		drive = new Drive (new WPI_TalonSRX (CANWiring.DRIVE_LEFT.m_port), 
+				new WPI_TalonSRX (CANWiring.DRIVE_RIGHT.m_port), 
+				PCMWiring.DRIVE_A.m_port, PCMWiring.DRIVE_B.m_port);
 		elevator = new Elevator (CANWiring.ELEVATOR.m_port, DIOWiring.ELEVATOR_BOTTOM_SW.m_port, 
 				DIOWiring.ELEVATOR_ENCODER_A.m_port, DIOWiring.ELEVATOR_ENCODER_B.m_port);
 		intake = new Intake (CANWiring.INTAKE_LEFT.m_port, CANWiring.INTAKE_RIGHT.m_port,
@@ -116,9 +122,16 @@ public class Robot extends IterativeRobot {
 		pilot = new XboxController (0);
 		copilot = new XboxController (1);
 		
-		m_chooser.addDefault("Default Auto", kDefaultAuto);
-		m_chooser.addObject("My Auto", kCustomAuto);
-		SmartDashboard.putData("Auto choices", m_chooser);
+		m_startingPositionChooser.addDefault("Left", StartingPosition.LEFT);
+		m_startingPositionChooser.addObject("Center", StartingPosition.CENTER);
+		m_startingPositionChooser.addObject("Right", StartingPosition.RIGHT);
+		SmartDashboard.putData("Starting Position", m_startingPositionChooser);
+		
+		m_targetLocationChooser.addDefault("Auto Line", Target.FORWARD);
+		m_targetLocationChooser.addObject("Switch", Target.OUR_SWITCH);
+		m_targetLocationChooser.addObject("Scale", Target.SCALE);
+		SmartDashboard.putData("Target Autonomous", m_targetLocationChooser);
+		
 	}
 
 	/**
@@ -134,10 +147,16 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-		m_autoSelected = m_chooser.getSelected();
-		// autoSelected = SmartDashboard.getString("Auto Selector",
-		// defaultAuto);
-		System.out.println("Auto selected: " + m_autoSelected);
+		
+		m_gameInfo = GameInfo.fromGameMessage(DriverStation.getInstance().getGameSpecificMessage());
+		System.out.println("Receieved game message: \n\t" + m_gameInfo);
+
+		m_startPos = m_startingPositionChooser.getSelected();
+		System.out.println("Reveived starting position: " + m_startPos);
+		
+		m_autonomousTarget = m_targetLocationChooser.getSelected();
+		System.out.println("Received target location: " + m_autonomousTarget);
+		
 	}
 
 	/**
@@ -145,15 +164,6 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		switch (m_autoSelected) {
-			case kCustomAuto:
-				// Put custom auto code here
-				break;
-			case kDefaultAuto:
-			default:
-				// Put default auto code here
-				break;
-		}
 	}
 
 	/**
@@ -161,6 +171,65 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
+		
+		/* --------- Pilot --------- */
+		
+		// Toggle the gear speed for driving
+		if (pilot.getBumperPressed(Hand.kLeft)) {
+			drive.toggleGearSpeed();
+		}
+		
+		// Toggle the robot's front for driving
+		if (pilot.getYButtonPressed()) {
+			drive.toggleInverted();
+		}
+		
+		// Toggle retracting the intake
+		if (pilot.getBumperPressed(Hand.kRight)) {
+			intake.toggleArms();
+		}
+		
+		// A button toggles if intake is sucking a cube in
+		if (pilot.getAButtonPressed()) {
+			if (intake.wheelsRunning()) {
+				intake.stopWheels();
+			}
+			else {
+				intake.cubeIn();
+			}
+		}
+		
+		// X button toggles if intake is pushing a cube out
+		if (pilot.getXButtonPressed()) {
+			if (intake.wheelsRunning()) {
+				intake.stopWheels();
+			}
+			else {
+				intake.cubeOut();
+			}
+		}
+		
+		drive.curvatureDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), false);
+		
+		//drive.arcadeDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), true);
+		
+
+		/* --------- Copilot --------- */
+		
+		if (copilot.getBButton()) {
+			fork.retract();
+		}
+		else if (copilot.getAButton()) {
+			fork.extend();
+		}
+		else {
+			fork.stop();
+		}
+		
+		if (copilot.getBumperPressed(Hand.kRight)) {
+			fork.toggleGripper();
+		}
+	
 		
 	}
 

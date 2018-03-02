@@ -26,11 +26,20 @@ public class Intake {
 
 	public void armsIn() {
 		piston.set(true);
-		wheelsOff();
+		stopWheels();
 	}
 	
 	public void armsOut() {
 		piston.set(false);
+	}
+	
+	public void toggleArms() {
+		if (piston.get()) {
+			armsOut();
+		}
+		else {
+			armsIn();
+		}
 	}
 	
 	public void cubeIn() {
@@ -43,9 +52,13 @@ public class Intake {
 		rightMotor.set(-0.6);
 	}
 	
-	public void wheelsOff() {
+	public void stopWheels() {
 		leftMotor.set(0.0);
 		rightMotor.set(0.0);
+	}
+	
+	public boolean wheelsRunning() {
+		return (leftMotor.get()!=0 && rightMotor.get()!=0);
 	}
 
 }
