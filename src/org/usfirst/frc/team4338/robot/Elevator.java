@@ -34,16 +34,20 @@ public class Elevator {
 		return bottomLimitSW.get() ||(getCurrentHeight()<=0);
 	}
 	
+	/**
+	 * Positive speed cooresponds to going up
+	 * @param speed
+	 */
 	public void elevateUpDown(double speed) {
-		if(atBottom() &&(speed > 0)) {
+		if(atBottom() &&(speed < 0)) {
 			this.motor.stopMotor();
 			//resetCurrentHeight();
 		}
-		else if((getCurrentHeight() >= MAX_HEIGHT) &&(speed < 0)) {
+		else if((getCurrentHeight() >= MAX_HEIGHT) &&(speed > 0)) {
 			this.motor.stopMotor();
 		}
 		else {
-			this.motor.set(speed);
+			this.motor.set(-speed);
 		}
 	}
 

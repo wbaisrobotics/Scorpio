@@ -229,7 +229,26 @@ public class Robot extends IterativeRobot {
 		if (copilot.getBumperPressed(Hand.kRight)) {
 			fork.toggleGripper();
 		}
-	
+		if (copilot.getBackButtonPressed()) {
+			fork.toggleReleaseFork();
+		}
+		
+		if (copilot.getTriggerAxis(Hand.kLeft) > 0.5) {
+			ramp.lowerRamp();
+		}
+		else {
+			ramp.stopRamp();
+		}
+		
+		if (copilot.getTriggerAxis(Hand.kRight) > 0.5) {
+			ramp.liftTeammate();
+		}
+		else {
+			ramp.stopTeammate();
+		}
+		
+		elevator.elevateUpDown(copilot.getY(Hand.kRight));
+		
 		
 	}
 
