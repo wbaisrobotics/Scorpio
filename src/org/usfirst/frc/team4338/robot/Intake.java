@@ -2,39 +2,40 @@ package org.usfirst.frc.team4338.robot;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 //import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 public class Intake {
 
 	private WPI_TalonSRX leftMotor;
 	private WPI_TalonSRX rightMotor;
 	
-	private Solenoid piston;
+	private DoubleSolenoid piston;
 	
 	//private DigitalInput limitSwitch;
 	
-	public Intake (int leftMotorPort, int rightMotorPort, int pistonBPort) {
+	public Intake (int leftMotorPort, int rightMotorPort, int pistonAPort, int pistonBPort) {
 		leftMotor = new WPI_TalonSRX (leftMotorPort);
 		rightMotor = new WPI_TalonSRX (rightMotorPort);
-		piston = new Solenoid (pistonBPort);
+		piston = new DoubleSolenoid (pistonAPort, pistonBPort);
 	}
 
 	public boolean getRetractionState() {
-		return piston.get();
+		return piston.get()==Value.kForward;
 	}
 
 	public void armsIn() {
-		piston.set(true);
+		piston.set(Value.kForward);
 		stopWheels();
 	}
 	
 	public void armsOut() {
-		piston.set(false);
+		piston.set(Value.kReverse);
 	}
 	
 	public void toggleArms() {
-		if (piston.get()) {
+		if (getRetractionState()) {
 			armsOut();
 		}
 		else {

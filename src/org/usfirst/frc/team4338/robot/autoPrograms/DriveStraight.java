@@ -1,6 +1,7 @@
 package org.usfirst.frc.team4338.robot.autoPrograms;
 
 import org.usfirst.frc.team4338.robot.Drive;
+import org.usfirst.frc.team4338.robot.Robot;
 
 public class DriveStraight implements AutonomousProgram {
 	
@@ -12,19 +13,22 @@ public class DriveStraight implements AutonomousProgram {
 
 	@Override
 	public void initialize() {
-		
+		drive.resetGyro();
 	}
 
 	@Override
 	public void update() {
-		// TODO Auto-generated method stub
-
+		if (Robot.timeSinceStart()<4000) {
+			drive.driveGyroStraight(0.7);
+		}
+		else {
+			stop();
+		}
 	}
 
 	@Override
 	public void stop() {
-		// TODO Auto-generated method stub
-
+		drive.arcadeDrive(0, 0);
 	}
 
 }

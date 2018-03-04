@@ -1,5 +1,5 @@
 package org.usfirst.frc.team4338.robot.autonomousData;
 
 public enum Target {
-	FORWARD, OUR_SWITCH, SCALE;
+	AUTO_LINE, OUR_SWITCH, SCALE;
 }

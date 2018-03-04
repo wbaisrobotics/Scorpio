@@ -30,7 +30,7 @@ public class Fork {
 		this.motor = new WPI_TalonSRX(motorPort);
 		this.motor.setNeutralMode(NeutralMode.Brake);
 		this.retractedLimitSW = new DigitalInput(retractedLimitSwitchPort);
-		this.retractedLimitSW = new DigitalInput(extendedLimitSwitchPort);
+		this.extendedLimitSW = new DigitalInput(extendedLimitSwitchPort);
 		
 		this.releaser = new DoubleSolenoid(releasePistonA, releasePistonB);
 		
@@ -38,11 +38,11 @@ public class Fork {
 		
 	}
 
-	private boolean canExtend() {
+	public boolean canExtend() {
 		return !extendedLimitSW.get();
 	}
 
-	private boolean canRetract() {
+	public boolean canRetract() {
 		return !retractedLimitSW.get();
 	}
 
@@ -65,7 +65,7 @@ public class Fork {
 	}
 
 	public void stop() {
-		this.motor.stopMotor();
+		this.motor.set(0.0);
 	}
 	
 	//maybeWorks

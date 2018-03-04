@@ -7,13 +7,19 @@
 
 package org.usfirst.frc.team4338.robot;
 
+import org.usfirst.frc.team4338.robot.autoPrograms.AutonomousProgram;
+import org.usfirst.frc.team4338.robot.autoPrograms.CenterSwitch;
+import org.usfirst.frc.team4338.robot.autoPrograms.DriveStraight;
+import org.usfirst.frc.team4338.robot.autoPrograms.SameSideSwitch;
 import org.usfirst.frc.team4338.robot.autonomousData.GameInfo;
 import org.usfirst.frc.team4338.robot.autonomousData.StartingPosition;
 import org.usfirst.frc.team4338.robot.autonomousData.Target;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
@@ -28,31 +34,31 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * project.
  */
 public class Robot extends IterativeRobot {
-	
+
 	public enum DIOWiring {
 
-		ELEVATOR_ENCODER_A(0),
-		ELEVATOR_ENCODER_B(1),
-		FORK_RETRACTED_SW(3),
-		DRIVE_LEFT_B(5),
-		DRIVE_LEFT_A(6),
-		DRIVE_RIGHT_A(8),
-		DRIVE_RIGHT_B(7),
-		INTAKE_SW(9),
-		TEAMMATE_LIFTER_LEFT_SW(2),
-		TEAMMATE_LIFTER_RIGHT_SW(20),
-		ELEVATOR_BOTTOM_SW(18),
-		FORK_EXTENDED_SW(13);
-		
+		ELEVATOR_ENCODER_A(3/*23*/),
+		ELEVATOR_ENCODER_B(4/*10*/),
+		FORK_RETRACTED_SW(1/*25*/), // SW 3
+		DRIVE_LEFT_B(5/*22*/),
+		DRIVE_LEFT_A(/*21*/6),
+		DRIVE_RIGHT_A(/*11*/8),
+		DRIVE_RIGHT_B(/*12*/7),
+		INTAKE_SW(/*24*/9), // SW 2
+		TEAMMATE_LIFTER_LEFT_SW(/*17*/2), // SW 1
+		TEAMMATE_LIFTER_RIGHT_SW(20), // SW 6
+		ELEVATOR_BOTTOM_SW(18), // SW 5
+		FORK_EXTENDED_SW(0); // SW 4
+
 		private int m_port;
 		private DIOWiring (int port) {
 			this.m_port = port;
 		}
-		
+
 	}
-	
+
 	public enum CANWiring {
-		
+
 		DRIVE_LEFT (2),
 		INTAKE_LEFT (3), 
 		ELEVATOR (4),
@@ -63,41 +69,46 @@ public class Robot extends IterativeRobot {
 		RAMP_LEFT (9),
 		RAMP_RIGHT (10),
 		DRIVE_RIGHT (11);
-		
+
 		private int m_port;
 		private CANWiring (int port) {
 			this.m_port = port;
 		}
 	}
-	
+
 	public enum PCMWiring {
-		
+
 		DRIVE_B (0), DRIVE_A (7),
 		INTAKE_A(1), INTAKE_B(6),
 		RELEASE_A (2), GRIPPER_B(5),
 		RELEASE_B(3), GRIPPER_A(4);
-		
+
 		private int m_port;
 		private PCMWiring (int port) {
 			this.m_port = port;
 		}
 	}
 
+	public static final int AUTONOMOUS_PERIOD = 20; //ms
+
 	private GameInfo m_gameInfo;
 	private StartingPosition m_startPos;
 	private Target m_autonomousTarget;	
-	
+
 	private SendableChooser<StartingPosition> m_startingPositionChooser = new SendableChooser<>();
 	private SendableChooser<Target> m_targetLocationChooser = new SendableChooser<>();
-	
+	private AutonomousProgram autoProgram;
+
 	private Drive drive;
 	private Elevator elevator;
 	private Intake intake;
 	private Fork fork;
 	private Ramp ramp;
-	
+
 	private XboxController pilot;
 	private XboxController copilot;
+
+	private static long startTime;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -105,33 +116,44 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
-		
+
+		initializeCameraConfig();
+
 		drive = new Drive (new WPI_TalonSRX (CANWiring.DRIVE_LEFT.m_port), 
 				new WPI_TalonSRX (CANWiring.DRIVE_RIGHT.m_port), 
-				PCMWiring.DRIVE_A.m_port, PCMWiring.DRIVE_B.m_port);
+				PCMWiring.DRIVE_A.m_port, PCMWiring.DRIVE_B.m_port,
+				new Encoder (DIOWiring.DRIVE_LEFT_A.m_port, DIOWiring.DRIVE_LEFT_B.m_port),
+				new Encoder (DIOWiring.DRIVE_RIGHT_A.m_port, DIOWiring.DRIVE_RIGHT_B.m_port));
+		
 		elevator = new Elevator (CANWiring.ELEVATOR.m_port, DIOWiring.ELEVATOR_BOTTOM_SW.m_port, 
 				DIOWiring.ELEVATOR_ENCODER_A.m_port, DIOWiring.ELEVATOR_ENCODER_B.m_port);
 		intake = new Intake (CANWiring.INTAKE_LEFT.m_port, CANWiring.INTAKE_RIGHT.m_port,
-				PCMWiring.INTAKE_B.m_port);
+				PCMWiring.INTAKE_A.m_port, PCMWiring.INTAKE_B.m_port);
 		fork = new Fork (CANWiring.FORK.m_port, DIOWiring.FORK_EXTENDED_SW.m_port, DIOWiring.FORK_RETRACTED_SW.m_port,
 				PCMWiring.GRIPPER_A.m_port, PCMWiring.GRIPPER_B.m_port, PCMWiring.RELEASE_A.m_port, PCMWiring.RELEASE_B.m_port);
 		ramp = new Ramp (CANWiring.RAMP_LEFT.m_port, CANWiring.RAMP_RIGHT.m_port,
 				CANWiring.TEAMMATE_LIFTER_LEFT.m_port, CANWiring.TEAMMATE_LIFTER_RIGHT.m_port,
 				DIOWiring.TEAMMATE_LIFTER_LEFT_SW.m_port, DIOWiring.TEAMMATE_LIFTER_RIGHT_SW.m_port);
-		
+
 		pilot = new XboxController (0);
 		copilot = new XboxController (1);
-		
+
 		m_startingPositionChooser.addDefault("Left", StartingPosition.LEFT);
 		m_startingPositionChooser.addObject("Center", StartingPosition.CENTER);
 		m_startingPositionChooser.addObject("Right", StartingPosition.RIGHT);
 		SmartDashboard.putData("Starting Position", m_startingPositionChooser);
-		
-		m_targetLocationChooser.addDefault("Auto Line", Target.FORWARD);
+
+		m_targetLocationChooser.addDefault("Auto Line", Target.AUTO_LINE);
 		m_targetLocationChooser.addObject("Switch", Target.OUR_SWITCH);
 		m_targetLocationChooser.addObject("Scale", Target.SCALE);
 		SmartDashboard.putData("Target Autonomous", m_targetLocationChooser);
-		
+
+		SmartDashboard.putBoolean("Lift Ramp", false);
+		SmartDashboard.putBoolean("Lower Teammate", false);
+
+		SmartDashboard.putBoolean("Elevator Coast", false);
+		SmartDashboard.putBoolean("Override Elevator Encoder Bottom", false);
+
 	}
 
 	/**
@@ -147,23 +169,104 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-		
+
 		m_gameInfo = GameInfo.fromGameMessage(DriverStation.getInstance().getGameSpecificMessage());
 		System.out.println("Receieved game message: \n\t" + m_gameInfo);
 
 		m_startPos = m_startingPositionChooser.getSelected();
 		System.out.println("Reveived starting position: " + m_startPos);
-		
+
 		m_autonomousTarget = m_targetLocationChooser.getSelected();
 		System.out.println("Received target location: " + m_autonomousTarget);
 		
+		drive.setInverted(true);
+
+		startTime = System.currentTimeMillis();
+		switch (m_autonomousTarget){
+
+		case AUTO_LINE:
+			autoProgram = new DriveStraight(drive);
+			break;
+		case OUR_SWITCH:
+
+			if (m_gameInfo.isAllignedWithSwitch(m_startPos)) {
+				autoProgram = new SameSideSwitch(drive, fork, elevator);
+			}
+			
+			else if (m_startPos == StartingPosition.CENTER) {
+				autoProgram = new CenterSwitch (drive, fork, m_gameInfo.isOurSwitchLeft());
+			}
+
+			break;
+		case SCALE:
+
+			break;
+
+		}
+		
+		if (autoProgram != null) {
+			autoProgram.initialize();
+		}
+
 	}
+
 
 	/**
 	 * This function is called periodically during autonomous.
 	 */
 	@Override
 	public void autonomousPeriodic() {
+		if (autoProgram != null) {
+			autoProgram.update();
+		}
+//		if ((System.currentTimeMillis()-startTime)<2000) {
+//			drive.arcadeDrive(1, 0, false);
+//			fork.extend();
+//			System.out.println("TRUE");
+//		}
+//		else {
+//			drive.arcadeDrive(0, 0, false);
+//			fork.openGripper();
+//			System.out.println("FALSE");
+//		}
+	}
+
+	//	private void autoSwitchSameSide () {
+	//		autoDriveStraight (3000, 0.5);
+	//		autoExtendForkFully();
+	//		fork.openGripper();
+	//	}
+	//
+	//	private void autoExtendForkFully() {
+	//		while (fork.canExtend()) {
+	//			fork.extend();
+	//			autoSleep();
+	//		}
+	//		fork.stop();
+	//	}
+	//
+	//	/**
+	//	 * Drives straight
+	//	 * @param time - time in milliseconds
+	//	 * @param xSpeed - the speed magnitude
+	//	 */
+	//	private void autoDriveStraight (long time, double xSpeed) {
+	//		long startTime = System.currentTimeMillis();
+	//		while ((System.currentTimeMillis()-startTime)<time) {
+	//			drive.arcadeDrive(xSpeed,0,false);
+	//			autoSleep();
+	//		}
+	//		System.out.println("SLEEP END");
+	//		System.out.println("SLEEP END");
+	//		System.out.println("SLEEP END");
+	//		drive.arcadeDrive(0,0,false);
+	//	}
+
+	public void teleopInit () {
+		if (autoProgram != null) {
+			autoProgram.stop();
+		}
+		ramp.resetLiftingTeammate();
 	}
 
 	/**
@@ -171,24 +274,24 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		
+
 		/* --------- Pilot --------- */
-		
+
 		// Toggle the gear speed for driving
 		if (pilot.getBumperPressed(Hand.kLeft)) {
 			drive.toggleGearSpeed();
 		}
-		
+
 		// Toggle the robot's front for driving
 		if (pilot.getYButtonPressed()) {
 			drive.toggleInverted();
 		}
-		
+
 		// Toggle retracting the intake
 		if (pilot.getBumperPressed(Hand.kRight)) {
 			intake.toggleArms();
 		}
-		
+
 		// A button toggles if intake is sucking a cube in
 		if (pilot.getAButtonPressed()) {
 			if (intake.wheelsRunning()) {
@@ -198,7 +301,7 @@ public class Robot extends IterativeRobot {
 				intake.cubeIn();
 			}
 		}
-		
+
 		// X button toggles if intake is pushing a cube out
 		if (pilot.getXButtonPressed()) {
 			if (intake.wheelsRunning()) {
@@ -208,14 +311,14 @@ public class Robot extends IterativeRobot {
 				intake.cubeOut();
 			}
 		}
-		
-		drive.curvatureDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), false);
-		
-		//drive.arcadeDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), true);
-		
+
+		//drive.curvatureDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), false);
+
+		drive.arcadeDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), true);
+
 
 		/* --------- Copilot --------- */
-		
+
 		if (copilot.getBButton()) {
 			fork.retract();
 		}
@@ -225,31 +328,46 @@ public class Robot extends IterativeRobot {
 		else {
 			fork.stop();
 		}
-		
+
 		if (copilot.getBumperPressed(Hand.kRight)) {
 			fork.toggleGripper();
 		}
-		if (copilot.getBackButtonPressed()) {
+		if (copilot.getStartButton() && copilot.getBackButtonPressed()) {
 			fork.toggleReleaseFork();
 		}
-		
+
 		if (copilot.getTriggerAxis(Hand.kLeft) > 0.5) {
 			ramp.lowerRamp();
+		}
+		else if (SmartDashboard.getBoolean("Lift Ramp", false)) {
+			ramp.liftRamp();
 		}
 		else {
 			ramp.stopRamp();
 		}
-		
+
 		if (copilot.getTriggerAxis(Hand.kRight) > 0.5) {
 			ramp.liftTeammate();
+		}
+		else if (SmartDashboard.getBoolean("Lower Teammate", false)) {
+			ramp.lowerTeammate();
 		}
 		else {
 			ramp.stopTeammate();
 		}
-		
-		elevator.elevateUpDown(copilot.getY(Hand.kRight));
-		
-		
+
+		if (SmartDashboard.getBoolean("Elevator Coast", false)) {
+			elevator.disableBrakeMode();
+		}
+		else {
+			elevator.enableBrakeMode();
+		}
+
+		elevator.setOverrideEncoderBottom(SmartDashboard.getBoolean("Override Elevator Encoder Bottom", false));
+
+		elevator.elevateUpDown(-copilot.getY(Hand.kLeft));
+
+
 	}
 
 	/**
@@ -257,5 +375,24 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void testPeriodic() {
+	}
+
+	private void initializeCameraConfig(){
+		NetworkTableInstance.getDefault()
+		.getEntry("/CameraPublisher/ForkCamera/streams")
+		.setStringArray(new String[]
+				{"mjpeg:http://10.43.38.8:1180/?action=stream"});
+		NetworkTableInstance.getDefault()
+		.getEntry("/CameraPublisher/BackCamera/streams")
+		.setStringArray(new String[]
+				{"mjpeg:http://10.43.38.8:1182/?action=stream"});
+	}
+
+	public static long getStartTime () {
+		return startTime;
+	}
+
+	public static long timeSinceStart () {
+		return System.currentTimeMillis() - startTime;
 	}
 }

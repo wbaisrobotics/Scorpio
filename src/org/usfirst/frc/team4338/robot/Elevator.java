@@ -11,13 +11,15 @@ public class Elevator {
 	private WPI_TalonSRX motor;
 	private Encoder encoder;
 	private DigitalInput bottomLimitSW;
+	private boolean overrideEncoderBottom = false;
 	
-	public static final double MAX_HEIGHT = 1000; // in pulses
+	public static final double MAX_HEIGHT = 8100; // in pulses
 	
 	public Elevator(int talonPort, int limitSwitchPort, int encoderA, int encoderB){
 		this.motor = new WPI_TalonSRX(talonPort);
-		this.motor.setNeutralMode(NeutralMode.Brake);
+		enableBrakeMode();
 		this.encoder = new Encoder(encoderA, encoderB);
+		this.encoder.setDistancePerPulse(-1);
 		this.bottomLimitSW = new DigitalInput(limitSwitchPort);
 	}
 
@@ -30,8 +32,12 @@ public class Elevator {
 //	}
 	
 	public boolean atBottom() {
-		// True reading repesents the bottom limit switch being pressed
-		return bottomLimitSW.get() ||(getCurrentHeight()<=0);
+		if (isOverrideEncoderBottom()) {
+			return bottomLimitSW.get();
+		}
+		else {
+			return bottomLimitSW.get() ||(getCurrentHeight()<=0);
+		}
 	}
 	
 	/**
@@ -39,12 +45,12 @@ public class Elevator {
 	 * @param speed
 	 */
 	public void elevateUpDown(double speed) {
-		if(atBottom() &&(speed < 0)) {
-			this.motor.stopMotor();
+		if(atBottom() && (speed < 0)) {
+			this.motor.set(0.0);
 			//resetCurrentHeight();
 		}
 		else if((getCurrentHeight() >= MAX_HEIGHT) &&(speed > 0)) {
-			this.motor.stopMotor();
+			this.motor.set(0.0);
 		}
 		else {
 			this.motor.set(-speed);
@@ -53,6 +59,23 @@ public class Elevator {
 
 	public void stop() {
 		elevateUpDown(0);
+	}
+
+	
+	public void enableBrakeMode() {
+		this.motor.setNeutralMode(NeutralMode.Brake);
+	}
+	
+	public void disableBrakeMode () {
+		this.motor.setNeutralMode(NeutralMode.Coast);
+	}
+
+	public boolean isOverrideEncoderBottom() {
+		return overrideEncoderBottom;
+	}
+
+	public void setOverrideEncoderBottom(boolean overrideEncoderBottom) {
+		this.overrideEncoderBottom = overrideEncoderBottom;
 	}
 
 }

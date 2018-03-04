@@ -13,6 +13,9 @@ public class Ramp {
 	private DigitalInput teammateLifterLeftSW;
 	private WPI_TalonSRX teammateLifterRight;
 	private DigitalInput teammateLifterRightSW;
+	
+	private boolean finishedLiftingLeft = false;
+	private boolean finishedLiftingRight = false;
 
 	public Ramp(int rampLeftMotor, int rampRightMotor, int teammateLifterLeftMotor, 
 			int teammateLifterRightMotor, int teammateLifterLeftSW,
@@ -44,19 +47,32 @@ public class Ramp {
 	 * Lifts another robot
 	 */
 	public void liftTeammate() {
-		if(!teammateLifterLeftSW.get()) {
-			this.teammateLifterLeft.set(-1.0);
+		
+		if (teammateLifterLeftSW.get()) {
+			finishedLiftingLeft = true;
 		}
-		else {
-			this.teammateLifterLeft.set(0);
+		if (teammateLifterRightSW.get()) {
+			finishedLiftingRight = true;
 		}
 		
-		if(!teammateLifterRightSW.get()) {
-			this.teammateLifterRight.set(1.0);
+		if(finishedLiftingLeft) {
+			this.teammateLifterLeft.set(0);
 		}
 		else {
+			this.teammateLifterLeft.set(-1.0);
+		}
+		
+		if(finishedLiftingRight) {
 			this.teammateLifterRight.set(0);
 		}
+		else {
+			this.teammateLifterRight.set(1.0);
+		}
+	}
+	
+	public void resetLiftingTeammate() {
+		finishedLiftingLeft = false;
+		finishedLiftingRight = false;
 	}
 	
 	public void lowerTeammate() {
