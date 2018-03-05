@@ -24,7 +24,7 @@ public class SameSideSwitch implements AutonomousProgram {
 
 	@Override
 	public void update() {
-		if (Robot.timeSinceStart()<2800) {
+		if (Robot.timeSinceStart()<2900) {
 			drive.driveGyroStraight(0.7);
 		}
 		else {
@@ -34,7 +34,7 @@ public class SameSideSwitch implements AutonomousProgram {
 		if (Robot.timeSinceStart() < 1500) {
 			elevator.elevateUpDown(0.5);
 		}
-		else if (Robot.timeSinceStart() < 50006f){
+		else if (Robot.timeSinceStart() < 5000){
 			elevator.stop();
 			fork.extend();
 		}
