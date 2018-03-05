@@ -289,7 +289,7 @@ public class Robot extends IterativeRobot {
 		}
 		else {
 			
-			//System.out.println("NOT RAMP MODE");
+			System.out.println("NOT RAMP MODE");
 			// Toggle retracting the intake
 			if (pilot.getBumper(Hand.kRight)) {
 				intake.armsIn();

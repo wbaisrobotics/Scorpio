@@ -31,10 +31,10 @@ public class SameSideSwitch implements AutonomousProgram {
 			drive.arcadeDrive(0, 0, false);
 		}
 		
-		if (Robot.timeSinceStart() < 1500) {
+		if (Robot.timeSinceStart() < 2000) {
 			elevator.elevateUpDown(0.5);
 		}
-		else if (Robot.timeSinceStart() < 5000){
+		else if (Robot.timeSinceStart() < 5500){
 			elevator.stop();
 			fork.extend();
 		}
