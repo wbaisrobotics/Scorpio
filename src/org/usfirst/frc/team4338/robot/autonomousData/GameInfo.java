@@ -38,5 +38,9 @@ public class GameInfo {
 	public boolean isAllignedWithSwitch (StartingPosition pos) {
 		return isOurSwitchLeft() == (pos == StartingPosition.LEFT);
 	}
+	
+	public boolean isAllignedWithScale (StartingPosition pos) {
+		return isScaleLeft() == (pos == StartingPosition.LEFT);
+	}
 
 }

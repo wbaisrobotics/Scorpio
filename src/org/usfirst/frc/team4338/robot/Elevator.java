@@ -13,6 +13,16 @@ public class Elevator {
 	private DigitalInput bottomLimitSW;
 	private boolean overrideEncoderBottom = false;
 	
+	public enum Stages {
+		
+		LOWEST (0), SWITCH (2000), SCALE_OUR_FAVOR (6000), SCALE_CENTER (7000), MAX_HEIGHT (8100);
+		
+		private double value;
+		private Stages (double value) {
+			this.value = value;
+		}
+	}
+	
 	public static final double MAX_HEIGHT = 8100; // in pulses 8744.25
 	
 	public Elevator(int talonPort, int limitSwitchPort, int encoderA, int encoderB){
@@ -84,6 +94,23 @@ public class Elevator {
 
 	public void setOverrideEncoderBottom(boolean overrideEncoderBottom) {
 		this.overrideEncoderBottom = overrideEncoderBottom;
+	}
+	
+	/**
+	 * Will try to reach stage, returns true if arrived
+	 * @param stage
+	 */
+	public boolean elevateToStageFromBelow (Stages stage) {
+		double diff = stage.value - getCurrentHeight();
+		if (diff > 0) {
+			elevateUpDown (0.5);
+			return false;
+		}
+		else {
+			elevateUpDown (0.0);
+			return true;
+		}
+		
 	}
 
 }

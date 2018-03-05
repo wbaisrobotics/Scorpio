@@ -10,7 +10,9 @@ package org.usfirst.frc.team4338.robot;
 import org.usfirst.frc.team4338.robot.autoPrograms.*;
 import org.usfirst.frc.team4338.robot.autoPrograms.center.CenterSwitch;
 import org.usfirst.frc.team4338.robot.autoPrograms.center.SwitchCenterNull;
+import org.usfirst.frc.team4338.robot.autoPrograms.side.SameSideScale;
 import org.usfirst.frc.team4338.robot.autoPrograms.side.SameSideSwitch;
+import org.usfirst.frc.team4338.robot.autoPrograms.side.SameSideSwitchSide;
 import org.usfirst.frc.team4338.robot.autoPrograms.side.SwitchSideGap;
 import org.usfirst.frc.team4338.robot.autoPrograms.side.WrongSideSwitch;
 import org.usfirst.frc.team4338.robot.autonomousData.GameInfo;
@@ -216,6 +218,26 @@ public class Robot extends IterativeRobot {
 			break;
 		case SCALE:
 
+			if (m_startPos == StartingPosition.LEFT) {
+				if (m_gameInfo.isScaleLeft()) {
+					autoProgram = new SameSideScale (drive, elevator, fork, true);
+				}
+				else {
+					autoProgram = new SameSideSwitchSide (drive, elevator, fork, true);
+				}
+			}
+			else if (m_startPos == StartingPosition.CENTER) {
+				
+			}
+			else if (m_startPos == StartingPosition.RIGHT) {
+				if (m_gameInfo.isScaleLeft()) {
+					autoProgram = new SameSideSwitchSide (drive, elevator, fork, false);
+				}
+				else {
+					autoProgram = new SameSideScale (drive, elevator, fork, false);
+				}
+			}
+			
 			break;
 
 		}

@@ -25,7 +25,7 @@ public class Drive extends DifferentialDrive {
 
 	private DoubleSolenoid pistons;
 	private GyroBase gyro;
-	public static final double GYRO_KP = 0.03;
+	public static final double GYRO_STRAIGHT_KP = 0.03;
 	
 	private PIDController leftController;
 	private PIDController rightController;
@@ -82,7 +82,23 @@ public class Drive extends DifferentialDrive {
 	}
 
 	public void driveGyroStraight(double xSpeed) {
-		arcadeDrive (xSpeed, -getGyroAngle()*GYRO_KP, false);
+		arcadeDrive (xSpeed, -getGyroAngle()*GYRO_STRAIGHT_KP, false);
+	}
+	
+	/**
+	 * Returns true if finished turning
+	 * @param degrees
+	 * @return
+	 */
+	public boolean turn (double degrees) {
+		if (getGyroAngle() < degrees) {
+			arcadeDrive (0, (Math.signum(degrees)*0.3), false);
+			return false;
+		}
+		else {
+			arcadeDrive (0,0,false);
+			return true;
+		}
 	}
 
 	public void arcadeDrive(double xSpeed, double zRotation, boolean squaredInputs) {
