@@ -1,15 +1,16 @@
-package org.usfirst.frc.team4338.robot.autoPrograms;
+package org.usfirst.frc.team4338.robot.autoPrograms.side;
 
 import org.usfirst.frc.team4338.robot.Drive;
 import org.usfirst.frc.team4338.robot.Elevator;
 import org.usfirst.frc.team4338.robot.Robot;
+import org.usfirst.frc.team4338.robot.autoPrograms.AutonomousProgram;
 
-public class SwitchCenterNull implements AutonomousProgram {
+public class WrongSideSwitch implements AutonomousProgram {
 	
 	private Drive drive;
 	private Elevator elevator;
 
-	public SwitchCenterNull(Drive drive, Elevator elevator) {
+	public WrongSideSwitch(Drive drive, Elevator elevator) {
 		this.drive = drive;
 		this.elevator = elevator;
 	}

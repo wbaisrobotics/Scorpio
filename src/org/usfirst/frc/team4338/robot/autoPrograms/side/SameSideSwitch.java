@@ -1,9 +1,10 @@
-package org.usfirst.frc.team4338.robot.autoPrograms;
+package org.usfirst.frc.team4338.robot.autoPrograms.side;
 
 import org.usfirst.frc.team4338.robot.Drive;
 import org.usfirst.frc.team4338.robot.Elevator;
 import org.usfirst.frc.team4338.robot.Fork;
 import org.usfirst.frc.team4338.robot.Robot;
+import org.usfirst.frc.team4338.robot.autoPrograms.AutonomousProgram;
 
 public class SameSideSwitch implements AutonomousProgram {
 	

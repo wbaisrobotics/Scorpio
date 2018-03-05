@@ -8,6 +8,11 @@
 package org.usfirst.frc.team4338.robot;
 
 import org.usfirst.frc.team4338.robot.autoPrograms.*;
+import org.usfirst.frc.team4338.robot.autoPrograms.center.CenterSwitch;
+import org.usfirst.frc.team4338.robot.autoPrograms.center.SwitchCenterNull;
+import org.usfirst.frc.team4338.robot.autoPrograms.side.SameSideSwitch;
+import org.usfirst.frc.team4338.robot.autoPrograms.side.SwitchSideGap;
+import org.usfirst.frc.team4338.robot.autoPrograms.side.WrongSideSwitch;
 import org.usfirst.frc.team4338.robot.autonomousData.GameInfo;
 import org.usfirst.frc.team4338.robot.autonomousData.StartingPosition;
 import org.usfirst.frc.team4338.robot.autonomousData.Target;
@@ -106,9 +111,6 @@ public class Robot extends IterativeRobot {
 	private XboxController copilot;
 
 	private static long startTime;
-	
-	private boolean rampMode;
-	private boolean rampModeElevatorGoingDown = false;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -124,7 +126,7 @@ public class Robot extends IterativeRobot {
 				PCMWiring.DRIVE_A.m_port, PCMWiring.DRIVE_B.m_port,
 				new Encoder (DIOWiring.DRIVE_LEFT_A.m_port, DIOWiring.DRIVE_LEFT_B.m_port),
 				new Encoder (DIOWiring.DRIVE_RIGHT_A.m_port, DIOWiring.DRIVE_RIGHT_B.m_port));
-		
+
 		elevator = new Elevator (CANWiring.ELEVATOR.m_port, DIOWiring.ELEVATOR_BOTTOM_SW.m_port, 
 				DIOWiring.ELEVATOR_ENCODER_A.m_port, DIOWiring.ELEVATOR_ENCODER_B.m_port);
 		intake = new Intake (CANWiring.INTAKE_LEFT.m_port, CANWiring.INTAKE_RIGHT.m_port,
@@ -157,6 +159,10 @@ public class Robot extends IterativeRobot {
 
 	}
 
+	private void resetMode () {
+		fork.closeGripper();
+	}
+
 	/**
 	 * This autonomous (along with the chooser code above) shows how to select
 	 * between different autonomous modes using the dashboard. The sendable
@@ -179,14 +185,14 @@ public class Robot extends IterativeRobot {
 
 		m_autonomousTarget = m_targetLocationChooser.getSelected();
 		System.out.println("Received target location: " + m_autonomousTarget);
-		
+
 		drive.setInverted(true);
 
 		startTime = System.currentTimeMillis();
 		switch (m_autonomousTarget){
 
 		case AUTO_LINE:
-			
+
 			switch (m_startPos) {
 			case CENTER:
 				autoProgram = new SwitchCenterNull(drive, elevator);
@@ -213,7 +219,9 @@ public class Robot extends IterativeRobot {
 			break;
 
 		}
-		
+
+		resetMode();
+
 		if (autoProgram != null) {
 			autoProgram.initialize();
 		}
@@ -242,86 +250,42 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		
+
 		if (SmartDashboard.getBoolean("Zero Elevator", false)) {
 			elevator.resetEncoder();
 		}
-		
-		if (copilot.getBumper(Hand.kRight)) {
-			rampMode = !rampMode;
-		}
-		
-		if (rampMode) {
-			
-			/* --------- Pilot --------- */
-			
-			intake.armsOut();
-			
-			
-			/* --------- Copilot --------- */
-			
-			fork.closeGripper();
-			
-			if (copilot.getAButtonPressed()) {
-				fork.resetTimer();
-			}
 
-			if (copilot.getBButton()) {
-				fork.retract();
-			}
-			else if (copilot.getAButton()) {
-				fork.extend(1000);
-			}
-			else {
-				fork.stop();
-			}
-			
-			if (copilot.getY(Hand.kLeft) > 0.5) {
-				rampModeElevatorGoingDown = true;
-			}
-			else if (copilot.getY(Hand.kLeft) < -0.5) {
-				rampModeElevatorGoingDown = false;
-			}
-			
-			elevator.elevateUpDown(rampModeElevatorGoingDown?-0.5:0);
-			
-			
+
+		// Toggle retracting the intake
+		if (pilot.getBumper(Hand.kRight)) {
+			intake.armsIn();
+		}
+		else if (pilot.getTriggerAxis(Hand.kRight) > 0.5) {
+			intake.armsOut();
+		}
+
+		if (copilot.getYButton()) {
+			//System.out.println("COPILOT Y");
+			fork.closeGripper();
+		}
+		else if (copilot.getXButton()) {
+			//System.out.println("COPILOT X");
+			fork.openGripper();
+		}
+
+		if (copilot.getBButton()) {
+			fork.retract();
+		}
+		else if (copilot.getAButton()) {
+			fork.extend();
 		}
 		else {
-			
-			System.out.println("NOT RAMP MODE");
-			// Toggle retracting the intake
-			if (pilot.getBumper(Hand.kRight)) {
-				intake.armsIn();
-			}
-			else if (pilot.getTriggerAxis(Hand.kRight) > 0.5) {
-				intake.armsOut();
-			}
-			
-			if (copilot.getYButton()) {
-				//System.out.println("COPILOT Y");
-				fork.closeGripper();
-			}
-			else if (copilot.getXButton()) {
-				//System.out.println("COPILOT X");
-				fork.openGripper();
-			}
-			
-			if (copilot.getBButton()) {
-				fork.retract();
-			}
-			else if (copilot.getAButton()) {
-				fork.extend();
-			}
-			else {
-				fork.stop();
-			}
-			
-
-			elevator.elevateUpDown(-copilot.getY(Hand.kLeft));
-			
-			
+			fork.stop();
 		}
+
+
+		elevator.elevateUpDown(-copilot.getY(Hand.kLeft));
+
 
 		/* --------- Pilot --------- */
 
@@ -336,23 +300,14 @@ public class Robot extends IterativeRobot {
 		}
 
 		// A button toggles if intake is sucking a cube in
-		if (pilot.getAButtonPressed()) {
-			if (intake.wheelsRunning()) {
-				intake.stopWheels();
-			}
-			else {
-				intake.cubeIn();
-			}
+		if (pilot.getAButton()) {
+			intake.cubeIn();
 		}
-
-		// X button toggles if intake is pushing a cube out
-		if (pilot.getXButtonPressed()) {
-			if (intake.wheelsRunning()) {
-				intake.stopWheels();
-			}
-			else {
-				intake.cubeOut();
-			}
+		else if (pilot.getXButton()) {
+			intake.cubeOut();
+		}
+		else {
+			intake.stopWheels();
 		}
 
 		//drive.curvatureDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), false);

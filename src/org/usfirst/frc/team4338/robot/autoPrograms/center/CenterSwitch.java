@@ -1,8 +1,9 @@
-package org.usfirst.frc.team4338.robot.autoPrograms;
+package org.usfirst.frc.team4338.robot.autoPrograms.center;
 
 import org.usfirst.frc.team4338.robot.Drive;
 import org.usfirst.frc.team4338.robot.Fork;
 import org.usfirst.frc.team4338.robot.Robot;
+import org.usfirst.frc.team4338.robot.autoPrograms.AutonomousProgram;
 
 public class CenterSwitch implements AutonomousProgram {
 	

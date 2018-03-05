@@ -1,15 +1,16 @@
-package org.usfirst.frc.team4338.robot.autoPrograms;
+package org.usfirst.frc.team4338.robot.autoPrograms.center;
 
 import org.usfirst.frc.team4338.robot.Drive;
 import org.usfirst.frc.team4338.robot.Elevator;
 import org.usfirst.frc.team4338.robot.Robot;
+import org.usfirst.frc.team4338.robot.autoPrograms.AutonomousProgram;
 
-public class SwitchSideGap implements AutonomousProgram {
+public class SwitchCenterNull implements AutonomousProgram {
 	
 	private Drive drive;
 	private Elevator elevator;
 
-	public SwitchSideGap(Drive drive, Elevator elevator) {
+	public SwitchCenterNull(Drive drive, Elevator elevator) {
 		this.drive = drive;
 		this.elevator = elevator;
 	}
@@ -21,10 +22,10 @@ public class SwitchSideGap implements AutonomousProgram {
 
 	@Override
 	public void update() {
-		if (Robot.timeSinceStart()<4000) {
+		if (Robot.timeSinceStart()<2800) {
 			drive.driveGyroStraight(0.7);
 		}
-		else if (Robot.timeSinceStart() < 6000){
+		else if (Robot.timeSinceStart() < 4800){
 			drive.arcadeDrive(0, 0, false);
 			elevator.elevateUpDown(0.5);
 		}
