@@ -6,9 +6,11 @@ import org.usfirst.frc.team4338.robot.Robot;
 public class DriveStraight implements AutonomousProgram {
 	
 	private Drive drive;
+	private double time;
 
-	public DriveStraight(Drive drive) {
+	public DriveStraight(Drive drive, double time) {
 		this.drive = drive;
+		this.time = time;
 	}
 
 	@Override
@@ -18,7 +20,7 @@ public class DriveStraight implements AutonomousProgram {
 
 	@Override
 	public void update() {
-		if (Robot.timeSinceStart()<4000) {
+		if (Robot.timeSinceStart()<time) {
 			drive.driveGyroStraight(0.7);
 		}
 		else {

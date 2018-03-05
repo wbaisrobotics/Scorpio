@@ -2,18 +2,15 @@ package org.usfirst.frc.team4338.robot.autoPrograms;
 
 import org.usfirst.frc.team4338.robot.Drive;
 import org.usfirst.frc.team4338.robot.Elevator;
-import org.usfirst.frc.team4338.robot.Fork;
 import org.usfirst.frc.team4338.robot.Robot;
 
-public class SameSideSwitch implements AutonomousProgram {
+public class WrongSideSwitch implements AutonomousProgram {
 	
 	private Drive drive;
-	private Fork fork;
 	private Elevator elevator;
 
-	public SameSideSwitch(Drive drive, Fork fork, Elevator elevator) {
+	public WrongSideSwitch(Drive drive, Elevator elevator) {
 		this.drive = drive;
-		this.fork = fork;
 		this.elevator = elevator;
 	}
 
@@ -27,28 +24,19 @@ public class SameSideSwitch implements AutonomousProgram {
 		if (Robot.timeSinceStart()<2800) {
 			drive.driveGyroStraight(0.7);
 		}
-		else {
+		else if (Robot.timeSinceStart() < 4800){
 			drive.arcadeDrive(0, 0, false);
-		}
-		
-		if (Robot.timeSinceStart() < 1500) {
 			elevator.elevateUpDown(0.5);
 		}
-		else if (Robot.timeSinceStart() < 50006f){
-			elevator.stop();
-			fork.extend();
-		}
 		else {
-			fork.stop();
-			fork.openGripper();
+			stop();
 		}
-//		else {
-//			//fork.retract();
-//		}
 	}
 
 	@Override
 	public void stop() {
+		drive.arcadeDrive(0, 0);
+		elevator.elevateUpDown(0.0);
 	}
 
 }

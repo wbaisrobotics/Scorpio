@@ -7,10 +7,7 @@
 
 package org.usfirst.frc.team4338.robot;
 
-import org.usfirst.frc.team4338.robot.autoPrograms.AutonomousProgram;
-import org.usfirst.frc.team4338.robot.autoPrograms.CenterSwitch;
-import org.usfirst.frc.team4338.robot.autoPrograms.DriveStraight;
-import org.usfirst.frc.team4338.robot.autoPrograms.SameSideSwitch;
+import org.usfirst.frc.team4338.robot.autoPrograms.*;
 import org.usfirst.frc.team4338.robot.autonomousData.GameInfo;
 import org.usfirst.frc.team4338.robot.autonomousData.StartingPosition;
 import org.usfirst.frc.team4338.robot.autonomousData.Target;
@@ -56,30 +53,6 @@ public class Robot extends IterativeRobot {
 		}
 
 	}
-	
-	
-	// B Bot
-//	public enum DIOWiring {
-//
-//		ELEVATOR_ENCODER_A(23),
-//		ELEVATOR_ENCODER_B(10),
-//		FORK_RETRACTED_SW(25),
-//		DRIVE_LEFT_B(22),
-//		DRIVE_LEFT_A(21),
-//		DRIVE_RIGHT_A(11),
-//		DRIVE_RIGHT_B(12),
-//		INTAKE_SW(24),
-//		TEAMMATE_LIFTER_LEFT_SW(2),
-//		TEAMMATE_LIFTER_RIGHT_SW(20),
-//		ELEVATOR_BOTTOM_SW(18), 
-//		FORK_EXTENDED_SW(0); 
-//
-//		private int m_port;
-//		private DIOWiring (int port) {
-//			this.m_port = port;
-//		}
-//
-//	}
 
 	public enum CANWiring {
 
@@ -99,26 +72,6 @@ public class Robot extends IterativeRobot {
 			this.m_port = port;
 		}
 	}
-	
-//	// B bot
-//	public enum CANWiring {
-//
-//		DRIVE_LEFT (1),
-//		INTAKE_LEFT (3), 
-//		ELEVATOR (4),
-//		TEAMMATE_LIFTER_LEFT (5),
-//		FORK (6),
-//		TEAMMATE_LIFTER_RIGHT (7),
-//		INTAKE_RIGHT (8),
-//		RAMP_LEFT (9),
-//		RAMP_RIGHT (10),
-//		DRIVE_RIGHT (16);
-//
-//		private int m_port;
-//		private CANWiring (int port) {
-//			this.m_port = port;
-//		}
-//	}
 
 	public enum PCMWiring {
 
@@ -233,16 +186,25 @@ public class Robot extends IterativeRobot {
 		switch (m_autonomousTarget){
 
 		case AUTO_LINE:
-			autoProgram = new DriveStraight(drive);
+			
+			switch (m_startPos) {
+			case CENTER:
+				autoProgram = new SwitchCenterNull(drive, elevator);
+				break;
+			case LEFT: case RIGHT:
+				autoProgram = new SwitchSideGap(drive, elevator);
+			}
 			break;
 		case OUR_SWITCH:
 
 			if (m_gameInfo.isAllignedWithSwitch(m_startPos)) {
 				autoProgram = new SameSideSwitch(drive, fork, elevator);
-			}
-			
+			}		
 			else if (m_startPos == StartingPosition.CENTER) {
 				autoProgram = new CenterSwitch (drive, fork, m_gameInfo.isOurSwitchLeft());
+			}
+			else {
+				autoProgram = new WrongSideSwitch(drive, elevator);
 			}
 
 			break;
@@ -267,49 +229,7 @@ public class Robot extends IterativeRobot {
 		if (autoProgram != null) {
 			autoProgram.update();
 		}
-//		if ((System.currentTimeMillis()-startTime)<2000) {
-//			drive.arcadeDrive(1, 0, false);
-//			fork.extend();
-//			System.out.println("TRUE");
-//		}
-//		else {
-//			drive.arcadeDrive(0, 0, false);
-//			fork.openGripper();
-//			System.out.println("FALSE");
-//		}
 	}
-
-	//	private void autoSwitchSameSide () {
-	//		autoDriveStraight (3000, 0.5);
-	//		autoExtendForkFully();
-	//		fork.openGripper();
-	//	}
-	//
-	//	private void autoExtendForkFully() {
-	//		while (fork.canExtend()) {
-	//			fork.extend();
-	//			autoSleep();
-	//		}
-	//		fork.stop();
-	//	}
-	//
-	//	/**
-	//	 * Drives straight
-	//	 * @param time - time in milliseconds
-	//	 * @param xSpeed - the speed magnitude
-	//	 */
-	//	private void autoDriveStraight (long time, double xSpeed) {
-	//		long startTime = System.currentTimeMillis();
-	//		while ((System.currentTimeMillis()-startTime)<time) {
-	//			drive.arcadeDrive(xSpeed,0,false);
-	//			autoSleep();
-	//		}
-	//		System.out.println("SLEEP END");
-	//		System.out.println("SLEEP END");
-	//		System.out.println("SLEEP END");
-	//		drive.arcadeDrive(0,0,false);
-	//	}
-
 	public void teleopInit () {
 		if (autoProgram != null) {
 			autoProgram.stop();
@@ -327,7 +247,7 @@ public class Robot extends IterativeRobot {
 			elevator.resetEncoder();
 		}
 		
-		if (copilot.getYButtonPressed()) {
+		if (copilot.getBumper(Hand.kRight)) {
 			rampMode = !rampMode;
 		}
 		
@@ -369,14 +289,22 @@ public class Robot extends IterativeRobot {
 		}
 		else {
 			
-			
+			//System.out.println("NOT RAMP MODE");
 			// Toggle retracting the intake
-			if (pilot.getBumperPressed(Hand.kRight)) {
-				intake.toggleArms();
+			if (pilot.getBumper(Hand.kRight)) {
+				intake.armsIn();
+			}
+			else if (pilot.getTriggerAxis(Hand.kRight) > 0.5) {
+				intake.armsOut();
 			}
 			
-			if (copilot.getBumperPressed(Hand.kRight)) {
-				fork.toggleGripper();
+			if (copilot.getYButton()) {
+				//System.out.println("COPILOT Y");
+				fork.closeGripper();
+			}
+			else if (copilot.getXButton()) {
+				//System.out.println("COPILOT X");
+				fork.openGripper();
 			}
 			
 			if (copilot.getBButton()) {
