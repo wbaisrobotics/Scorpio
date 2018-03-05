@@ -37,18 +37,18 @@ public class Robot extends IterativeRobot {
 
 	public enum DIOWiring {
 
-		ELEVATOR_ENCODER_A(3/*23*/),
-		ELEVATOR_ENCODER_B(4/*10*/),
-		FORK_RETRACTED_SW(1/*25*/), // SW 3
-		DRIVE_LEFT_B(5/*22*/),
-		DRIVE_LEFT_A(/*21*/6),
-		DRIVE_RIGHT_A(/*11*/8),
-		DRIVE_RIGHT_B(/*12*/7),
-		INTAKE_SW(/*24*/9), // SW 2
-		TEAMMATE_LIFTER_LEFT_SW(/*17*/2), // SW 1
-		TEAMMATE_LIFTER_RIGHT_SW(20), // SW 6
-		ELEVATOR_BOTTOM_SW(18), // SW 5
-		FORK_EXTENDED_SW(0); // SW 4
+		ELEVATOR_ENCODER_A(3),
+		ELEVATOR_ENCODER_B(4),
+		FORK_RETRACTED_SW(1),
+		DRIVE_LEFT_B(5),
+		DRIVE_LEFT_A(6),
+		DRIVE_RIGHT_A(8),
+		DRIVE_RIGHT_B(7),
+		INTAKE_SW(9), 
+		TEAMMATE_LIFTER_LEFT_SW(2),
+		TEAMMATE_LIFTER_RIGHT_SW(20),
+		ELEVATOR_BOTTOM_SW(18),
+		FORK_EXTENDED_SW(0);
 
 		private int m_port;
 		private DIOWiring (int port) {
@@ -56,6 +56,30 @@ public class Robot extends IterativeRobot {
 		}
 
 	}
+	
+	
+	// B Bot
+//	public enum DIOWiring {
+//
+//		ELEVATOR_ENCODER_A(23),
+//		ELEVATOR_ENCODER_B(10),
+//		FORK_RETRACTED_SW(25),
+//		DRIVE_LEFT_B(22),
+//		DRIVE_LEFT_A(21),
+//		DRIVE_RIGHT_A(11),
+//		DRIVE_RIGHT_B(12),
+//		INTAKE_SW(24),
+//		TEAMMATE_LIFTER_LEFT_SW(2),
+//		TEAMMATE_LIFTER_RIGHT_SW(20),
+//		ELEVATOR_BOTTOM_SW(18), 
+//		FORK_EXTENDED_SW(0); 
+//
+//		private int m_port;
+//		private DIOWiring (int port) {
+//			this.m_port = port;
+//		}
+//
+//	}
 
 	public enum CANWiring {
 
@@ -75,6 +99,26 @@ public class Robot extends IterativeRobot {
 			this.m_port = port;
 		}
 	}
+	
+//	// B bot
+//	public enum CANWiring {
+//
+//		DRIVE_LEFT (1),
+//		INTAKE_LEFT (3), 
+//		ELEVATOR (4),
+//		TEAMMATE_LIFTER_LEFT (5),
+//		FORK (6),
+//		TEAMMATE_LIFTER_RIGHT (7),
+//		INTAKE_RIGHT (8),
+//		RAMP_LEFT (9),
+//		RAMP_RIGHT (10),
+//		DRIVE_RIGHT (16);
+//
+//		private int m_port;
+//		private CANWiring (int port) {
+//			this.m_port = port;
+//		}
+//	}
 
 	public enum PCMWiring {
 
@@ -109,6 +153,9 @@ public class Robot extends IterativeRobot {
 	private XboxController copilot;
 
 	private static long startTime;
+	
+	private boolean rampMode;
+	private boolean rampModeElevatorGoingDown = false;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -153,6 +200,7 @@ public class Robot extends IterativeRobot {
 
 		SmartDashboard.putBoolean("Elevator Coast", false);
 		SmartDashboard.putBoolean("Override Elevator Encoder Bottom", false);
+		SmartDashboard.putBoolean("Zero Elevator", false);
 
 	}
 
@@ -274,6 +322,78 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
+		
+		if (SmartDashboard.getBoolean("Zero Elevator", false)) {
+			elevator.resetEncoder();
+		}
+		
+		if (copilot.getYButtonPressed()) {
+			rampMode = !rampMode;
+		}
+		
+		if (rampMode) {
+			
+			/* --------- Pilot --------- */
+			
+			intake.armsOut();
+			
+			
+			/* --------- Copilot --------- */
+			
+			fork.closeGripper();
+			
+			if (copilot.getAButtonPressed()) {
+				fork.resetTimer();
+			}
+
+			if (copilot.getBButton()) {
+				fork.retract();
+			}
+			else if (copilot.getAButton()) {
+				fork.extend(1000);
+			}
+			else {
+				fork.stop();
+			}
+			
+			if (copilot.getY(Hand.kLeft) > 0.5) {
+				rampModeElevatorGoingDown = true;
+			}
+			else if (copilot.getY(Hand.kLeft) < -0.5) {
+				rampModeElevatorGoingDown = false;
+			}
+			
+			elevator.elevateUpDown(rampModeElevatorGoingDown?-0.5:0);
+			
+			
+		}
+		else {
+			
+			
+			// Toggle retracting the intake
+			if (pilot.getBumperPressed(Hand.kRight)) {
+				intake.toggleArms();
+			}
+			
+			if (copilot.getBumperPressed(Hand.kRight)) {
+				fork.toggleGripper();
+			}
+			
+			if (copilot.getBButton()) {
+				fork.retract();
+			}
+			else if (copilot.getAButton()) {
+				fork.extend();
+			}
+			else {
+				fork.stop();
+			}
+			
+
+			elevator.elevateUpDown(-copilot.getY(Hand.kLeft));
+			
+			
+		}
 
 		/* --------- Pilot --------- */
 
@@ -285,11 +405,6 @@ public class Robot extends IterativeRobot {
 		// Toggle the robot's front for driving
 		if (pilot.getYButtonPressed()) {
 			drive.toggleInverted();
-		}
-
-		// Toggle retracting the intake
-		if (pilot.getBumperPressed(Hand.kRight)) {
-			intake.toggleArms();
 		}
 
 		// A button toggles if intake is sucking a cube in
@@ -319,19 +434,7 @@ public class Robot extends IterativeRobot {
 
 		/* --------- Copilot --------- */
 
-		if (copilot.getBButton()) {
-			fork.retract();
-		}
-		else if (copilot.getAButton()) {
-			fork.extend();
-		}
-		else {
-			fork.stop();
-		}
 
-		if (copilot.getBumperPressed(Hand.kRight)) {
-			fork.toggleGripper();
-		}
 		if (copilot.getStartButton() && copilot.getBackButtonPressed()) {
 			fork.toggleReleaseFork();
 		}
@@ -364,8 +467,6 @@ public class Robot extends IterativeRobot {
 		}
 
 		elevator.setOverrideEncoderBottom(SmartDashboard.getBoolean("Override Elevator Encoder Bottom", false));
-
-		elevator.elevateUpDown(-copilot.getY(Hand.kLeft));
 
 
 	}

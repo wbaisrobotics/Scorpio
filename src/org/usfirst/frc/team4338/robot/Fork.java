@@ -24,6 +24,8 @@ public class Fork {
 	// ----------- Gripping cubes -----------
 	private DoubleSolenoid gripper;
 	
+	private long time;
+	
 	// Constructor
 	public Fork(int motorPort, int extendedLimitSwitchPort, int retractedLimitSwitchPort,
 			int gripperPistonA, int gripperPistonB, int releasePistonA, int releasePistonB) {
@@ -68,21 +70,30 @@ public class Fork {
 		this.motor.set(0.0);
 	}
 	
-	//maybeWorks
-	public void extendToReleasePosition() {
-		timer = new Timer();
-		timer.scheduleAtFixedRate(new TimerTask() {
-			public void run() {
-				extend();
-			}
-			
-		}, 0, 20);
-		timer.schedule(new TimerTask() {
-			public void run() {
-				timer.cancel();
-			}
-			
-		}, 5000);
+	public void resetTimer () {
+		time = Robot.timeSinceStart();
+	}
+	
+	public long getTimerTime () {
+		return Robot.timeSinceStart() - time;
+	}
+	
+	public void extend(long milliseconds) {
+		if (getTimerTime() < milliseconds) {
+			stop();
+		}
+		else {
+			extend();
+		}
+	}
+	
+	public void retract(long milliseconds) {
+		if (getTimerTime() < milliseconds) {
+			stop();
+		}
+		else {
+			retract();
+		}
 	}
 	
 	// ----------- Releasing fork -----------

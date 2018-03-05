@@ -24,13 +24,23 @@ public class SameSideSwitch implements AutonomousProgram {
 
 	@Override
 	public void update() {
-		if ((System.currentTimeMillis()-Robot.getStartTime())<2000) {
+		if (Robot.timeSinceStart()<2000) {
 			drive.driveGyroStraight(1.0);
+		}
+		else {
+			drive.arcadeDrive(0, 0, false);
+		}
+		
+		if (Robot.timeSinceStart() < 2000) {
+			elevator.elevateUpDown(0.5);
+		}
+		else if (Robot.timeSinceStart() < 10000){
+			elevator.stop();
 			fork.extend();
 		}
 		else {
+			fork.stop();
 			fork.openGripper();
-			drive.arcadeDrive(0, 0, false);
 		}
 	}
 

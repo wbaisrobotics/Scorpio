@@ -13,7 +13,7 @@ public class Elevator {
 	private DigitalInput bottomLimitSW;
 	private boolean overrideEncoderBottom = false;
 	
-	public static final double MAX_HEIGHT = 8100; // in pulses
+	public static final double MAX_HEIGHT = 8100; // in pulses 8744.25
 	
 	public Elevator(int talonPort, int limitSwitchPort, int encoderA, int encoderB){
 		this.motor = new WPI_TalonSRX(talonPort);
@@ -21,6 +21,10 @@ public class Elevator {
 		this.encoder = new Encoder(encoderA, encoderB);
 		this.encoder.setDistancePerPulse(-1);
 		this.bottomLimitSW = new DigitalInput(limitSwitchPort);
+	}
+	
+	public void resetEncoder () {
+		encoder.reset();
 	}
 
 	public double getCurrentHeight() {
@@ -39,6 +43,10 @@ public class Elevator {
 			return bottomLimitSW.get() ||(getCurrentHeight()<=0);
 		}
 	}
+	
+//	public boolean atTop() {
+//		
+//	}
 	
 	/**
 	 * Positive speed cooresponds to going up
