@@ -1,8 +1,5 @@
 package org.usfirst.frc.team4338.robot;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
@@ -16,7 +13,6 @@ public class Fork {
 	private WPI_TalonSRX motor;
 	private DigitalInput extendedLimitSW;
 	private DigitalInput retractedLimitSW;
-	private Timer timer;
 	
 	// ----------- Releasing fork -----------
 	private DoubleSolenoid releaser;

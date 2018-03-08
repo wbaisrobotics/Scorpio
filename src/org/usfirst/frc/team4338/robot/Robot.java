@@ -8,10 +8,8 @@
 package org.usfirst.frc.team4338.robot;
 
 import org.usfirst.frc.team4338.robot.autoPrograms.*;
-import org.usfirst.frc.team4338.robot.autoPrograms.center.CenterSwitch;
 import org.usfirst.frc.team4338.robot.autoPrograms.center.SwitchCenterNull;
 import org.usfirst.frc.team4338.robot.autoPrograms.side.SameSideSwitch;
-import org.usfirst.frc.team4338.robot.autoPrograms.side.SwitchSideGap;
 import org.usfirst.frc.team4338.robot.autoPrograms.side.WrongSideSwitch;
 import org.usfirst.frc.team4338.robot.autonomousData.GameInfo;
 import org.usfirst.frc.team4338.robot.autonomousData.StartingPosition;
@@ -198,7 +196,7 @@ public class Robot extends IterativeRobot {
 				autoProgram = new SwitchCenterNull(drive, elevator);
 				break;
 			case LEFT: case RIGHT:
-				autoProgram = new SwitchSideGap(drive, elevator);
+				autoProgram = new DriveStraight(drive, 4000);
 			}
 			break;
 		case OUR_SWITCH:
@@ -207,7 +205,7 @@ public class Robot extends IterativeRobot {
 				autoProgram = new SameSideSwitch(drive, fork, elevator);
 			}		
 			else if (m_startPos == StartingPosition.CENTER) {
-				autoProgram = new CenterSwitch (drive, fork, m_gameInfo.isOurSwitchLeft());
+				//autoProgram = new CenterSwitch (drive, fork, m_gameInfo.isOurSwitchLeft());
 			}
 			else {
 				autoProgram = new WrongSideSwitch(drive, elevator);
@@ -239,6 +237,7 @@ public class Robot extends IterativeRobot {
 		}
 	}
 	public void teleopInit () {
+		drive.setInverted(false);
 		if (autoProgram != null) {
 			autoProgram.stop();
 		}
@@ -257,11 +256,8 @@ public class Robot extends IterativeRobot {
 
 
 		// Toggle retracting the intake
-		if (pilot.getBumper(Hand.kRight)) {
-			intake.armsIn();
-		}
-		else if (pilot.getTriggerAxis(Hand.kRight) > 0.5) {
-			intake.armsOut();
+		if (pilot.getBumperPressed(Hand.kRight)) {
+			intake.toggleArms();
 		}
 
 		if (copilot.getYButton()) {
@@ -300,14 +296,21 @@ public class Robot extends IterativeRobot {
 		}
 
 		// A button toggles if intake is sucking a cube in
-		if (pilot.getAButton()) {
-			intake.cubeIn();
+		if (pilot.getAButtonPressed()) {
+			if (intake.wheelsRunning()) {
+				intake.stopWheels();
+			}
+			else {
+				intake.cubeIn();
+			}
 		}
-		else if (pilot.getXButton()) {
-			intake.cubeOut();
-		}
-		else {
-			intake.stopWheels();
+		else if (pilot.getXButtonPressed()) {
+			if (intake.wheelsRunning()) {
+				intake.stopWheels();
+			}
+			else {
+				intake.cubeOut();
+			}
 		}
 
 		//drive.curvatureDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), false);
@@ -350,6 +353,9 @@ public class Robot extends IterativeRobot {
 		}
 
 		elevator.setOverrideEncoderBottom(SmartDashboard.getBoolean("Override Elevator Encoder Bottom", false));
+		
+		SmartDashboard.putBoolean("Intake Running", intake.wheelsRunning());
+		SmartDashboard.putBoolean("Intake Retracted", intake.getRetractionState());
 
 
 	}
