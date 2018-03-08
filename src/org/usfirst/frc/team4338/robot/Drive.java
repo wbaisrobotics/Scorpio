@@ -13,50 +13,21 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Drive extends DifferentialDrive {
-	
-	public static final double WHEEL_RADIUS = 0.0785; // in meters
-	public static final double WHEEL_CIRCUMFERENCE = Math.PI * 2 * WHEEL_RADIUS;
-	public static final double WHEEL_ROTATIONS_IN_METER = 1/WHEEL_CIRCUMFERENCE;
-	public static final double ENCODER_PULSES_PER_REVOLUTION = 20; // ( 20 pulses per CIMCoder revolution )
-	//public static final double GEAR_RATIO = (1/26.04);
-	public static final double GEAR_RATIO = (1/2.5);
-	public static final double PULSES_IN_METER = ENCODER_PULSES_PER_REVOLUTION * WHEEL_ROTATIONS_IN_METER / GEAR_RATIO;
-	public static final double DISTANCE_PER_PULSE = WHEEL_CIRCUMFERENCE * GEAR_RATIO / ENCODER_PULSES_PER_REVOLUTION;
 
 	private DoubleSolenoid pistons;
-	private GyroBase gyro;
-	public static final double GYRO_KP = 0.03;
-	
-	private PIDController leftController;
-	private PIDController rightController;
-	
-	private Encoder leftEncoder;
-	private Encoder rightEncoder;
 
 	private boolean inverted = false;
 
-	public Drive(WPI_TalonSRX leftMotor, WPI_TalonSRX rightMotor, int pistonAPort, int pistonBPort, Encoder leftEncoder, Encoder rightEncoder) {
+	public Drive(WPI_TalonSRX leftMotor, WPI_TalonSRX rightMotor, int pistonAPort, int pistonBPort) {
 
 		super(leftMotor, rightMotor);
 
 		// Disable brake mode
 		leftMotor.setNeutralMode(NeutralMode.Coast);
 		rightMotor.setNeutralMode(NeutralMode.Coast);
-		
-		this.leftEncoder = leftEncoder;
-		this.leftEncoder.setDistancePerPulse(DISTANCE_PER_PULSE);
-		this.rightEncoder = rightEncoder;
-		this.rightEncoder.setDistancePerPulse(DISTANCE_PER_PULSE);
-		
-		this.leftController = new PIDController (0, 0, 0, leftEncoder, leftMotor);
-		SmartDashboard.putData(leftController);
-		this.rightController = new PIDController (0, 0, 0, rightEncoder, rightMotor);
-		SmartDashboard.putData(rightController);
 
 		// Initialize the piston
 		this.pistons = new DoubleSolenoid (pistonAPort, pistonBPort);
-
-		gyro = new ADXRS450_Gyro();
 
 	}
 	
