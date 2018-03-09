@@ -35,8 +35,11 @@ public class GameInfo {
 		return new GameInfo (isOurSwitchLeft, isScaleLeft, isTheirSwitchLeft);
 	}
 	
-	public boolean isAllignedWithSwitch (StartingPosition pos) {
-		return isOurSwitchLeft() == (pos == StartingPosition.LEFT);
+	public boolean isAllignedWithPos (StartingPosition pos){
+		if (pos == StartingPosition.CENTER || pos == StartingPosition.LEFT_SIDE || pos == StartingPosition.RIGHT_SIDE) {
+			return false;
+		}
+		return (pos == StartingPosition.LEFT_SWITCH) == (isOurSwitchLeft());
 	}
 
 }

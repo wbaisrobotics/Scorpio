@@ -1,14 +1,14 @@
 package org.usfirst.frc.team4338.robot.autoPrograms;
 
-import org.usfirst.frc.team4338.robot.Drive;
 import org.usfirst.frc.team4338.robot.Robot;
+import org.usfirst.frc.team4338.robot.SensorDrive;
 
 public class DriveStraight implements AutonomousProgram {
 	
-	private Drive drive;
+	private SensorDrive drive;
 	private double time;
 
-	public DriveStraight(Drive drive, double time) {
+	public DriveStraight(SensorDrive drive, double time) {
 		this.drive = drive;
 		this.time = time;
 	}
@@ -20,12 +20,18 @@ public class DriveStraight implements AutonomousProgram {
 
 	@Override
 	public void update() {
-		if (Robot.timeSinceStart()<time) {
-			drive.driveGyroStraight(0.7);
+		if (drive.getAvgDistance() < 3.156) {
+			drive.gyroStraight(0.5);
 		}
 		else {
 			stop();
 		}
+//		if (Robot.timeSinceStart()<time) {
+//			drive.gyroStraight(0.7);
+//		}
+//		else {
+//			stop();
+//		}
 	}
 
 	@Override

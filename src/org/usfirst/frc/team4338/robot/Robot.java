@@ -8,9 +8,11 @@
 package org.usfirst.frc.team4338.robot;
 
 import org.usfirst.frc.team4338.robot.autoPrograms.*;
+import org.usfirst.frc.team4338.robot.autoPrograms.center.CenterSwitchLeft;
+import org.usfirst.frc.team4338.robot.autoPrograms.center.CenterSwitchRight;
 import org.usfirst.frc.team4338.robot.autoPrograms.center.SwitchCenterNull;
-import org.usfirst.frc.team4338.robot.autoPrograms.side.SameSideSwitch;
-import org.usfirst.frc.team4338.robot.autoPrograms.side.WrongSideSwitch;
+import org.usfirst.frc.team4338.robot.autoPrograms.side.StraightSwitch;
+import org.usfirst.frc.team4338.robot.autoPrograms.side.StraightSwitchWrong;
 import org.usfirst.frc.team4338.robot.autonomousData.GameInfo;
 import org.usfirst.frc.team4338.robot.autonomousData.StartingPosition;
 import org.usfirst.frc.team4338.robot.autonomousData.Target;
@@ -99,7 +101,7 @@ public class Robot extends IterativeRobot {
 	private SendableChooser<Target> m_targetLocationChooser = new SendableChooser<>();
 	private AutonomousProgram autoProgram;
 
-	private Drive drive;
+	private SensorDrive drive;
 	private Elevator elevator;
 	private Intake intake;
 	private Fork fork;
@@ -119,7 +121,7 @@ public class Robot extends IterativeRobot {
 
 		initializeCameraConfig();
 
-		drive = new Drive (new WPI_TalonSRX (CANWiring.DRIVE_LEFT.m_port), 
+		drive = new SensorDrive (new WPI_TalonSRX (CANWiring.DRIVE_LEFT.m_port), 
 				new WPI_TalonSRX (CANWiring.DRIVE_RIGHT.m_port), 
 				PCMWiring.DRIVE_A.m_port, PCMWiring.DRIVE_B.m_port,
 				new Encoder (DIOWiring.DRIVE_LEFT_A.m_port, DIOWiring.DRIVE_LEFT_B.m_port),
@@ -138,9 +140,11 @@ public class Robot extends IterativeRobot {
 		pilot = new XboxController (0);
 		copilot = new XboxController (1);
 
-		m_startingPositionChooser.addDefault("Left", StartingPosition.LEFT);
+		m_startingPositionChooser.addDefault("Left Side", StartingPosition.LEFT_SIDE);
+		m_startingPositionChooser.addDefault("Left Switch", StartingPosition.LEFT_SWITCH);
 		m_startingPositionChooser.addObject("Center", StartingPosition.CENTER);
-		m_startingPositionChooser.addObject("Right", StartingPosition.RIGHT);
+		m_startingPositionChooser.addObject("Right Switch", StartingPosition.RIGHT_SWITCH);
+		m_startingPositionChooser.addObject("Right Side", StartingPosition.RIGHT_SIDE);
 		SmartDashboard.putData("Starting Position", m_startingPositionChooser);
 
 		m_targetLocationChooser.addDefault("Auto Line", Target.AUTO_LINE);
@@ -159,6 +163,8 @@ public class Robot extends IterativeRobot {
 
 	private void resetMode () {
 		fork.closeGripper();
+		drive.resetEncoders();
+		drive.resetGyro();
 	}
 
 	/**
@@ -192,23 +198,49 @@ public class Robot extends IterativeRobot {
 		case AUTO_LINE:
 
 			switch (m_startPos) {
+
 			case CENTER:
 				autoProgram = new SwitchCenterNull(drive, elevator);
 				break;
-			case LEFT: case RIGHT:
+			case LEFT_SIDE: case RIGHT_SIDE:
 				autoProgram = new DriveStraight(drive, 4000);
+				break;
+			case LEFT_SWITCH: case RIGHT_SWITCH:
+				autoProgram = new DriveStraight(drive, 2800);
+				break;
+
 			}
+
 			break;
 		case OUR_SWITCH:
 
-			if (m_gameInfo.isAllignedWithSwitch(m_startPos)) {
-				autoProgram = new SameSideSwitch(drive, fork, elevator);
-			}		
-			else if (m_startPos == StartingPosition.CENTER) {
-				//autoProgram = new CenterSwitch (drive, fork, m_gameInfo.isOurSwitchLeft());
-			}
-			else {
-				autoProgram = new WrongSideSwitch(drive, elevator);
+			switch (m_startPos) {
+
+			case CENTER:
+
+				if (m_gameInfo.isOurSwitchLeft()) {
+					autoProgram = new CenterSwitchLeft (drive, fork, elevator);
+				}
+				else {
+					autoProgram = new CenterSwitchRight (drive, fork, elevator);
+				}
+
+				break;
+			case LEFT_SIDE: case RIGHT_SIDE:
+				
+				
+				
+				break;
+			case LEFT_SWITCH: case RIGHT_SWITCH:
+
+				if (m_gameInfo.isAllignedWithPos(m_startPos)) {
+					autoProgram = new StraightSwitch(drive, fork, elevator);
+				}
+				else {
+					autoProgram = new StraightSwitchWrong(drive, elevator);
+				}
+				break;
+
 			}
 
 			break;
@@ -353,7 +385,7 @@ public class Robot extends IterativeRobot {
 		}
 
 		elevator.setOverrideEncoderBottom(SmartDashboard.getBoolean("Override Elevator Encoder Bottom", false));
-		
+
 		SmartDashboard.putBoolean("Intake Running", intake.wheelsRunning());
 		SmartDashboard.putBoolean("Intake Retracted", intake.getRetractionState());
 
