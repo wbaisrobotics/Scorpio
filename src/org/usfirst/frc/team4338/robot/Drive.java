@@ -3,14 +3,9 @@ package org.usfirst.frc.team4338.robot;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.GyroBase;
-import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Drive extends DifferentialDrive {
 
@@ -29,31 +24,6 @@ public class Drive extends DifferentialDrive {
 		// Initialize the piston
 		this.pistons = new DoubleSolenoid (pistonAPort, pistonBPort);
 
-	}
-	
-	public void enablePID () {
-		leftController.enable();
-		rightController.enable();
-	}
-	
-	public void disablePID() {
-		leftController.disable();
-		rightController.disable();
-	}
-	
-	/**
-	 * 
-	 * @param distance (meters)
-	 */
-	public void driveEncoderStraight (double distance) {
-		leftController.setSetpoint(leftEncoder.getDistance() + distance);
-		rightController.setSetpoint(rightEncoder.getDistance() + distance);
-		leftController.enable();
-		rightController.enable();
-	}
-
-	public void driveGyroStraight(double xSpeed) {
-		arcadeDrive (xSpeed, -getGyroAngle()*GYRO_KP, false);
 	}
 
 	public void arcadeDrive(double xSpeed, double zRotation, boolean squaredInputs) {
@@ -84,15 +54,7 @@ public class Drive extends DifferentialDrive {
 			shiftHighGear();
 		}
 	}
-
-	public double getGyroAngle() {
-		return gyro.getAngle();
-	}
-
-	public void resetGyro() {
-		gyro.reset();
-	}
-
+	
 	public boolean isInverted() {
 		return inverted;
 	}
@@ -104,10 +66,6 @@ public class Drive extends DifferentialDrive {
 	public void toggleInverted() {
 		setInverted (!isInverted());
 	}
-
-	//	public void calibrateGyro() {
-	//		gyro.calibrate();
-	//	}
 
 	// -------------- Aaron's Driving Code --------------
 

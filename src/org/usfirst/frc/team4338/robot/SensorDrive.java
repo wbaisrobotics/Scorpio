@@ -73,5 +73,17 @@ public class SensorDrive {
 		gyro = new ADXRS450_Gyro();
 		
 	}
+	
+	public void driveGyroStraight(double xSpeed) {
+		arcadeDrive (xSpeed, -getGyroAngle()*GYRO_KP, false);
+	}
+	
+	public double getGyroAngle() {
+		return gyro.getAngle();
+	}
+
+	public void resetGyro() {
+		gyro.reset();
+	}
 
 }
