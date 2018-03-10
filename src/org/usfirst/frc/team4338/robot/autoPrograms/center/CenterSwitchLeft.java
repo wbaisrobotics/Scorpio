@@ -11,10 +11,8 @@ public class CenterSwitchLeft implements AutonomousProgram {
 	private Elevator elevator;
 	private Fork fork;
 	
-	private int n = 0;
-	
 	private static enum State {
-		INITIAL_STRAIGHT, FIRST_TURN, SECOND_STRAIGHT, SECOND_TURN, FINAL_STRAIGHT, ENDED;
+		INITIAL_STRAIGHT, FIRST_TURN, SECOND_STRAIGHT, SECOND_TURN, FINAL_STRAIGHT, LIFT_ELEVATOR, EXTEND_FORK, RELEASE_CUBE, ENDED;
 	}
 	private State currentState;
 
@@ -32,10 +30,6 @@ public class CenterSwitchLeft implements AutonomousProgram {
 
 	@Override
 	public void update() {
-		if (n%10 == 0) {
-		System.out.println("CenterSwitch: " + currentState.toString());
-		}
-		n++;
 		
 		switch (currentState) {
 		case INITIAL_STRAIGHT:
@@ -87,6 +81,9 @@ public class CenterSwitchLeft implements AutonomousProgram {
 			if (drive.getAvgDistance() > 1.0) {
 				currentState = State.ENDED;
 			}
+			
+			break;
+		case LIFT_ELEVATOR:
 			
 			break;
 			
