@@ -304,60 +304,30 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
+		
+		/* --------- SmartDashboard --------- */
+		if (SmartDashboard.getBoolean("Elevator Coast", false)) {
+			elevator.disableBrakeMode();
+		}
+		else {
+			elevator.enableBrakeMode();
+		}
 
 		if (SmartDashboard.getBoolean("Zero Elevator", false)) {
 			elevator.resetCurrentHeight();
 		}
+		
+		elevator.setOverrideEncoderBottom(SmartDashboard.getBoolean("Override Elevator Encoder Bottom", false));
+		
+		SmartDashboard.putBoolean("Intake Running", intake.wheelsRunning());
 
-
+		
+		/* --------- Copilot --------- */
+		
 		// Toggle retracting the intake
 		if (copilot.getBumperPressed(Hand.kRight)) {
 			intake.toggleArms();
 		}
-
-//		if (copilot.getBButton()) {
-//			fork.retract();
-//		}
-//		else if (copilot.getAButton()) {
-//			fork.extend();
-//		}
-//		else {
-//			fork.stop();
-//		}
-
-
-//		elevator.elevate(-copilot.getY(Hand.kLeft));
-
-
-		/* --------- Pilot --------- */
-
-		// Toggle the gear speed for driving
-//		if (pilot.getBumperPressed(Hand.kLeft)) {
-//			drive.toggleGearSpeed();
-//		}
-//
-//		// Toggle the robot's front for driving
-//		if (pilot.getYButtonPressed()) {
-//			drive.toggleInverted();
-//		}
-
-		// A button toggles if intake is sucking a cube in
-//		if (copilot.getAButtonPressed()) {
-//			if (intake.wheelsRunning()) {
-//				intake.stop();
-//			}
-//			else {
-//				intake.cubeIn();
-//			}
-//		}
-//		else if (copilot.getXButtonPressed()) {
-//			if (intake.wheelsRunning()) {
-//				intake.stop();
-//			}
-//			else {
-//				intake.cubeOut();
-//			}
-//		}
 		
 		if (copilot.getAButton()) {
 			intake.cubeIn();
@@ -372,24 +342,32 @@ public class Robot extends IterativeRobot {
 			intake.stop();
 		}
 
-		//drive.curvatureDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), false);
+//		if (copilot.getBButton()) {
+//			fork.retract();
+//		}
+//		else if (copilot.getAButton()) {
+//			fork.extend();
+//		}
+//		else {
+//			fork.stop();
+//		}
 
+		elevator.elevate(-copilot.getY(Hand.kLeft));
+
+
+		/* --------- Pilot --------- */
+		
 		drive.arcadeDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), true);
 
-
-		/* --------- Copilot --------- */
-
-
-		if (SmartDashboard.getBoolean("Elevator Coast", false)) {
-			elevator.disableBrakeMode();
-		}
-		else {
-			elevator.enableBrakeMode();
+		// Toggle the gear speed for driving
+		if (pilot.getBumperPressed(Hand.kLeft)) {
+			drive.toggleGearSpeed();
 		}
 
-		elevator.setOverrideEncoderBottom(SmartDashboard.getBoolean("Override Elevator Encoder Bottom", false));
-
-		SmartDashboard.putBoolean("Intake Running", intake.wheelsRunning());
+		// Toggle the robot's front for driving
+		if (pilot.getYButtonPressed()) {
+			drive.toggleInverted();
+		}
 
 	}
 	
