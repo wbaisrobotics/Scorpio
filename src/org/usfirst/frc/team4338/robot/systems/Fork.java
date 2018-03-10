@@ -1,52 +1,61 @@
 package org.usfirst.frc.team4338.robot.systems;
 
-import org.usfirst.frc.team4338.robot.Robot;
-
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.command.Subsystem;
 
+/**
+ * Represents the fork subsystem for extending and retracting a lead screw connected to a carriage.
+ * Connects to two {@link DigitalInput} representing the limit switches in the extended and
+ * retracted position of the fork.
+ * @author orianleitersdorf
+ *
+ */
 public class Fork extends Subsystem{
-
-	// ----------- Extension -----------
+	
+	/** The motor in control of extending and retracting the fork (holding the intake mechanism) **/
 	private WPI_TalonSRX motor;
+	/** The limit switch that is triggered when the fork is in the fully extended position **/
 	private DigitalInput extendedLimitSW;
+	/** The limit switch that is triggered when the fork is in the fully retracted position **/
 	private DigitalInput retractedLimitSW;
 	
-	// ----------- Releasing fork -----------
-	private DoubleSolenoid releaser;
-	
-	// ----------- Gripping cubes -----------
-	private DoubleSolenoid gripper;
-	
-	private long time;
-	
-	// Constructor
-	public Fork(int motorPort, int extendedLimitSwitchPort, int retractedLimitSwitchPort,
-			int gripperPistonA, int gripperPistonB, int releasePistonA, int releasePistonB) {
-		this.motor = new WPI_TalonSRX(motorPort);
+	/**
+	 * Initializes the Fork extension mechanism with a motor used for output, and two digital inputs
+	 * representing limit switches for the extended and retracted positions (respectively).
+	 * @param motor
+	 * @param extendedSW
+	 * @param retractedSW
+	 */
+	public Fork(WPI_TalonSRX motor, DigitalInput extendedSW, DigitalInput retractedSW) {
+		this.motor = motor;
+		this.extendedLimitSW = extendedSW;
+		this.retractedLimitSW = retractedSW;
+		
 		this.motor.setNeutralMode(NeutralMode.Brake);
-		this.retractedLimitSW = new DigitalInput(retractedLimitSwitchPort);
-		this.extendedLimitSW = new DigitalInput(extendedLimitSwitchPort);
-		
-		this.releaser = new DoubleSolenoid(releasePistonA, releasePistonB);
-		
-		this.gripper = new DoubleSolenoid(gripperPistonA, gripperPistonB);
-		
 	}
 
+	/**
+	 * Returns whether or not the fork can extend (according to the limit switches)
+	 * @return
+	 */
 	public boolean canExtend() {
 		return !extendedLimitSW.get();
 	}
 
+	/**
+	 * Returns whether or not the fork can retract (according to the limit switches)
+	 * @return
+	 */
 	public boolean canRetract() {
 		return !retractedLimitSW.get();
 	}
 
+	/**
+	 * Extends the fork (only if {@link canExtend()} returns true, if not calls {@link stop()})
+	 */
 	public void extend() {
 		if(canExtend()) {
 			this.motor.set(1.0);
@@ -56,6 +65,9 @@ public class Fork extends Subsystem{
 		}
 	}
 
+	/**
+	 * Retracts the fork (only if {@link canRetract()} returns true, if not calls {@link stop()})
+	 */
 	public void retract() {
 		if(canRetract()) {
 			this.motor.set(-1.0);
@@ -65,65 +77,16 @@ public class Fork extends Subsystem{
 		}
 	}
 
+	/**
+	 * Stops the motor in control of the fork
+	 */
 	public void stop() {
 		this.motor.set(0.0);
 	}
 	
-	public void resetTimer () {
-		time = Robot.timeSinceStart();
-	}
-	
-	public long getTimerTime () {
-		return Robot.timeSinceStart() - time;
-	}
-	
-	public void extend(long milliseconds) {
-		if (getTimerTime() < milliseconds) {
-			stop();
-		}
-		else {
-			extend();
-		}
-	}
-	
-	public void retract(long milliseconds) {
-		if (getTimerTime() < milliseconds) {
-			stop();
-		}
-		else {
-			retract();
-		}
-	}
-	
-	// ----------- Releasing fork -----------
-
-	public void releaseFork() {
-		this.releaser.set(Value.kForward);
-	}
-
-	public void holdFork() {
-		this.releaser.set(Value.kReverse);
-	}
-	
-	public void toggleReleaseFork () {
-		releaser.set((releaser.get()==Value.kForward)?Value.kReverse:Value.kForward);
-	}
-
-	// ----------- Gripping cubes -----------
-	
-	public void openGripper() {
-		this.gripper.set(Value.kReverse);
-	}
-
-	public void closeGripper() {
-		this.gripper.set(Value.kForward);
-	}
-	
-	public void toggleGripper () {
-		gripper.set((gripper.get()==Value.kForward)?Value.kReverse:Value.kForward);
-	}
-
-	@Override
+	/**
+	 * No default command
+	 */
 	protected void initDefaultCommand() {}
 
 }

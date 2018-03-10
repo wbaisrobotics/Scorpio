@@ -26,6 +26,8 @@ import org.usfirst.frc.team4338.robot.systems.SensorDrive;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -89,9 +91,7 @@ public class Robot extends IterativeRobot {
 	public enum PCMWiring {
 
 		DRIVE_B (0), DRIVE_A (7),
-		INTAKE_A(1), INTAKE_B(6),
-		RELEASE_A (2), GRIPPER_B(5),
-		RELEASE_B(3), GRIPPER_A(4);
+		INTAKE_A(1), INTAKE_B(6);
 
 		private int m_port;
 		private PCMWiring (int port) {
@@ -130,18 +130,32 @@ public class Robot extends IterativeRobot {
 		drive = new SensorDrive (
 				new WPI_TalonSRX (CANWiring.DRIVE_FIRST_LEFT.m_port), new WPI_TalonSRX (CANWiring.DRIVE_SECOND_LEFT.m_port) ,
 				new WPI_TalonSRX (CANWiring.DRIVE_FIRST_RIGHT.m_port), new WPI_TalonSRX (CANWiring.DRIVE_SECOND_RIGHT.m_port), 
-				PCMWiring.DRIVE_A.m_port, PCMWiring.DRIVE_B.m_port,
+				new DoubleSolenoid (PCMWiring.DRIVE_A.m_port, PCMWiring.DRIVE_B.m_port),
 				new Encoder (DIOWiring.DRIVE_LEFT_A.m_port, DIOWiring.DRIVE_LEFT_B.m_port),
-				new Encoder (DIOWiring.DRIVE_RIGHT_A.m_port, DIOWiring.DRIVE_RIGHT_B.m_port));
+				new Encoder (DIOWiring.DRIVE_RIGHT_A.m_port, DIOWiring.DRIVE_RIGHT_B.m_port)
+				);
 
-		elevator = new Elevator (CANWiring.ELEVATOR.m_port, DIOWiring.ELEVATOR_BOTTOM_SW.m_port, 
-				DIOWiring.ELEVATOR_ENCODER_A.m_port, DIOWiring.ELEVATOR_ENCODER_B.m_port);
-		intake = new Intake (CANWiring.INTAKE_LEFT.m_port, CANWiring.INTAKE_RIGHT.m_port,
-				PCMWiring.INTAKE_A.m_port, PCMWiring.INTAKE_B.m_port);
-		fork = new Fork (CANWiring.FORK.m_port, DIOWiring.FORK_EXTENDED_SW.m_port, DIOWiring.FORK_RETRACTED_SW.m_port,
-				PCMWiring.GRIPPER_A.m_port, PCMWiring.GRIPPER_B.m_port, PCMWiring.RELEASE_A.m_port, PCMWiring.RELEASE_B.m_port);
+		elevator = new Elevator (
+				new WPI_TalonSRX(CANWiring.ELEVATOR.m_port), 
+				new Encoder (DIOWiring.ELEVATOR_ENCODER_A.m_port, DIOWiring.ELEVATOR_ENCODER_B.m_port),
+				new DigitalInput (DIOWiring.ELEVATOR_BOTTOM_SW.m_port)
+				);
 		
-		climber = new Climber (new WPI_TalonSRX (CANWiring.CLIMBER_LEFT.m_port), new WPI_TalonSRX (CANWiring.CLIMBER_RIGHT.m_port));
+		intake = new Intake (
+				new WPI_TalonSRX(CANWiring.INTAKE_LEFT.m_port),
+				new WPI_TalonSRX(CANWiring.INTAKE_RIGHT.m_port),
+				new DoubleSolenoid(PCMWiring.INTAKE_A.m_port, PCMWiring.INTAKE_B.m_port));
+		
+		fork = new Fork (
+				new WPI_TalonSRX(CANWiring.FORK.m_port),
+				new DigitalInput (DIOWiring.FORK_EXTENDED_SW.m_port),
+				new DigitalInput (DIOWiring.FORK_RETRACTED_SW.m_port)
+				);
+		
+		climber = new Climber (
+				new WPI_TalonSRX (CANWiring.CLIMBER_LEFT.m_port),
+				new WPI_TalonSRX (CANWiring.CLIMBER_RIGHT.m_port)
+				);
 
 		pilot = new XboxController (0);
 		copilot = new XboxController (1);
@@ -168,7 +182,7 @@ public class Robot extends IterativeRobot {
 	}
 
 	private void resetMode () {
-		fork.closeGripper();
+		intake.closeArms();
 		drive.resetEncoders();
 		drive.resetGyro();
 	}
@@ -292,66 +306,70 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 
 		if (SmartDashboard.getBoolean("Zero Elevator", false)) {
-			elevator.resetEncoder();
+			elevator.resetCurrentHeight();
 		}
 
 
 		// Toggle retracting the intake
-		if (pilot.getBumperPressed(Hand.kRight)) {
+		if (copilot.getBumperPressed(Hand.kRight)) {
 			intake.toggleArms();
 		}
 
-		if (copilot.getYButton()) {
-			//System.out.println("COPILOT Y");
-			fork.closeGripper();
-		}
-		else if (copilot.getXButton()) {
-			//System.out.println("COPILOT X");
-			fork.openGripper();
-		}
-
-		if (copilot.getBButton()) {
-			fork.retract();
-		}
-		else if (copilot.getAButton()) {
-			fork.extend();
-		}
-		else {
-			fork.stop();
-		}
+//		if (copilot.getBButton()) {
+//			fork.retract();
+//		}
+//		else if (copilot.getAButton()) {
+//			fork.extend();
+//		}
+//		else {
+//			fork.stop();
+//		}
 
 
-		elevator.elevateUpDown(-copilot.getY(Hand.kLeft));
+//		elevator.elevate(-copilot.getY(Hand.kLeft));
 
 
 		/* --------- Pilot --------- */
 
 		// Toggle the gear speed for driving
-		if (pilot.getBumperPressed(Hand.kLeft)) {
-			drive.toggleGearSpeed();
-		}
-
-		// Toggle the robot's front for driving
-		if (pilot.getYButtonPressed()) {
-			drive.toggleInverted();
-		}
+//		if (pilot.getBumperPressed(Hand.kLeft)) {
+//			drive.toggleGearSpeed();
+//		}
+//
+//		// Toggle the robot's front for driving
+//		if (pilot.getYButtonPressed()) {
+//			drive.toggleInverted();
+//		}
 
 		// A button toggles if intake is sucking a cube in
-		if (pilot.getAButtonPressed()) {
-			if (intake.wheelsRunning()) {
-				intake.stopWheels();
-			}
-			else {
-				intake.cubeIn();
-			}
+//		if (copilot.getAButtonPressed()) {
+//			if (intake.wheelsRunning()) {
+//				intake.stop();
+//			}
+//			else {
+//				intake.cubeIn();
+//			}
+//		}
+//		else if (copilot.getXButtonPressed()) {
+//			if (intake.wheelsRunning()) {
+//				intake.stop();
+//			}
+//			else {
+//				intake.cubeOut();
+//			}
+//		}
+		
+		if (copilot.getAButton()) {
+			intake.cubeIn();
 		}
-		else if (pilot.getXButtonPressed()) {
-			if (intake.wheelsRunning()) {
-				intake.stopWheels();
-			}
-			else {
-				intake.cubeOut();
-			}
+		else if (copilot.getXButton()) {
+			intake.cubeOut();
+		}
+		else if (copilot.getYButton()) {
+			intake.cubeOutFullPower();
+		}
+		else {
+			intake.stop();
 		}
 
 		//drive.curvatureDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), false);
@@ -361,10 +379,6 @@ public class Robot extends IterativeRobot {
 
 		/* --------- Copilot --------- */
 
-
-		if (copilot.getStartButton() && copilot.getBackButtonPressed()) {
-			fork.toggleReleaseFork();
-		}
 
 		if (SmartDashboard.getBoolean("Elevator Coast", false)) {
 			elevator.disableBrakeMode();
@@ -376,7 +390,6 @@ public class Robot extends IterativeRobot {
 		elevator.setOverrideEncoderBottom(SmartDashboard.getBoolean("Override Elevator Encoder Bottom", false));
 
 		SmartDashboard.putBoolean("Intake Running", intake.wheelsRunning());
-		SmartDashboard.putBoolean("Intake Retracted", intake.getRetractionState());
 
 	}
 	
