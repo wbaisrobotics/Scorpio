@@ -36,10 +36,10 @@ public class GameInfo {
 	}
 	
 	public boolean isAllignedWithPos (StartingPosition pos){
-		if (pos == StartingPosition.CENTER || pos == StartingPosition.LEFT_SIDE || pos == StartingPosition.RIGHT_SIDE) {
+		if (pos == StartingPosition.CENTER) {
 			return false;
 		}
-		return (pos == StartingPosition.LEFT_SWITCH) == (isOurSwitchLeft());
+		return (pos == StartingPosition.LEFT_SWITCH || pos == StartingPosition.LEFT_SIDE) == (isOurSwitchLeft());
 	}
 
 }

@@ -6,33 +6,36 @@ import org.usfirst.frc.team4338.robot.SensorDrive;
 import edu.wpi.first.wpilibj.command.Command;
 
 /**
+ * Faster but may overshoot
+ * @author orianleitersdorf
  *
  */
-public class AutoStraight extends Command {
+public class AutoStraightFullPower extends Command {
 
 	public static final double DISTANCE_ERROR = 0.05;
 
 	private SensorDrive drive;
 	private double distance;
 
-	public AutoStraight(SensorDrive drive, double distance) {
+	public AutoStraightFullPower(SensorDrive drive, double distance) {
 		this.drive = drive;
 		this.distance = distance;
 		requires (drive);
 	}
 
 	protected void initialize() {
-		drive.initEncoderStraight(distance);
+		drive.resetEncoders();
+		drive.resetGyro();
 	}
 
 	// Called repeatedly when this Command is scheduled to run
 	protected void execute() {
-		drive.executeEncoderStraight();
+		drive.gyroStraight(1.0);
 	}
 
 	// Make this return true when this Command no longer needs to run execute()
 	protected boolean isFinished() {
-		return Math.abs(drive.getEncoderStraightError()) < DISTANCE_ERROR;
+		return drive.getAvgDistance() > distance;
 	}
 
 	// Called once after isFinished returns true

@@ -19,13 +19,18 @@ public class CenterSwitchLeft extends CommandGroup {
     	
         addSequential (new AutoStraight(drive, 0.5));
         addSequential (new AutoTurn (drive, -65));
-        addSequential (new AutoStraight(drive, 2.0));
+        addSequential (new AutoStraight(drive, 1.9));
         addSequential (new AutoTurn (drive, 65));
-        addSequential (new AutoStraight(drive, 1.0));
+        addSequential (new AutoStraight(drive, 1.2));
         
-        addSequential (new AutoLiftElevator (elevator, Stage.SWITCH));
-        addSequential (new AutoExtendFork (fork));
-        addSequential (new AutoReleaseCube(intake));
+//        addSequential (new AutoLiftElevator (elevator, Stage.SWITCH));
+//        addSequential (new AutoExtendFork (fork));
+//        addSequential (new AutoReleaseCube(intake));
         
+        addSequential (new AutoStraight(drive, -1.2));
+        addSequential (new AutoTurn (drive, -65));
+        addSequential (new AutoStraight(drive, -1.9));
+        addSequential (new AutoTurn (drive, 65));
+
     }
 }

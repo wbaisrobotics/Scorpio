@@ -42,6 +42,7 @@ public class Drive extends Subsystem {
 	}
 
 	public void arcadeDrive(double xSpeed, double zRotation, boolean squaredInputs) {
+		//System.out.println("Mag: " + xSpeed + ", zRot: " + zRotation);
 		drive.arcadeDrive(isInverted()?-xSpeed:xSpeed, -zRotation, squaredInputs);
 	}
 

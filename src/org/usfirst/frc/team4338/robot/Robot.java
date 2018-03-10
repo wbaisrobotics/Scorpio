@@ -11,6 +11,8 @@ import org.usfirst.frc.team4338.robot.autoCommands.AutoConstants;
 import org.usfirst.frc.team4338.robot.autoCommands.AutoStraight;
 import org.usfirst.frc.team4338.robot.autoCommands.sw.CenterSwitchLeft;
 import org.usfirst.frc.team4338.robot.autoCommands.sw.CenterSwitchRight;
+import org.usfirst.frc.team4338.robot.autoCommands.sw.SideSwitch;
+import org.usfirst.frc.team4338.robot.autoCommands.sw.SideSwitchOtherSide;
 import org.usfirst.frc.team4338.robot.autoCommands.sw.StraightSwitch;
 import org.usfirst.frc.team4338.robot.autonomousData.GameInfo;
 import org.usfirst.frc.team4338.robot.autonomousData.StartingPosition;
@@ -225,7 +227,15 @@ public class Robot extends IterativeRobot {
 
 				break;
 			case LEFT_SIDE: case RIGHT_SIDE:
-			
+				
+				if (m_gameInfo.isAllignedWithPos(m_startPos)) {
+					autoProgram = new SideSwitch (drive, elevator, fork, intake, m_startPos == StartingPosition.LEFT_SIDE);
+				}
+				else {
+					autoProgram = new SideSwitchOtherSide (drive, elevator, fork, intake, m_startPos == StartingPosition.LEFT_SIDE);
+				}
+				
+				//autoProgram = new AutoTurn (drive, 90, 1.0);
 				
 				break;
 			case LEFT_SWITCH: case RIGHT_SWITCH:
@@ -266,6 +276,7 @@ public class Robot extends IterativeRobot {
 	
 	public void teleopInit () {
 		drive.setInverted(false);
+		
 	}
 
 	/**
@@ -381,14 +392,17 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putBoolean("Intake Running", intake.wheelsRunning());
 		SmartDashboard.putBoolean("Intake Retracted", intake.getRetractionState());
 
-
+	}
+	
+	public void testInit() {
+		drive.calibrateGyro();
 	}
 
 	/**
 	 * This function is called periodically during test mode.
 	 */
 	@Override
-	public void testPeriodic() {
+	public void testPeriodic() {	
 	}
 
 	private void initializeCameraConfig(){
