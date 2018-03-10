@@ -6,8 +6,9 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.command.Subsystem;
 
-public class Fork {
+public class Fork extends Subsystem{
 
 	// ----------- Extension -----------
 	private WPI_TalonSRX motor;
@@ -119,5 +120,8 @@ public class Fork {
 	public void toggleGripper () {
 		gripper.set((gripper.get()==Value.kForward)?Value.kReverse:Value.kForward);
 	}
+
+	@Override
+	protected void initDefaultCommand() {}
 
 }

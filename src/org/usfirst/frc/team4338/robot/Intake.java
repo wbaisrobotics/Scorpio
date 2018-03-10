@@ -5,8 +5,9 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 //import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.command.Subsystem;
 
-public class Intake {
+public class Intake extends Subsystem{
 
 	private WPI_TalonSRX leftMotor;
 	private WPI_TalonSRX rightMotor;
@@ -61,5 +62,8 @@ public class Intake {
 	public boolean wheelsRunning() {
 		return (leftMotor.get()!=0 && rightMotor.get()!=0);
 	}
+
+	@Override
+	protected void initDefaultCommand() {}
 
 }

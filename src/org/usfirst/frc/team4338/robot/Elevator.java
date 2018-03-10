@@ -5,13 +5,24 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.command.Subsystem;
 
-public class Elevator {
+public class Elevator extends Subsystem {
 
 	private WPI_TalonSRX motor;
 	private Encoder encoder;
 	private DigitalInput bottomLimitSW;
 	private boolean overrideEncoderBottom = false;
+	
+	public enum Stage {
+		
+		LOWEST (0), SWITCH (2000), SCALE_OUR_FAVOR (6000), SCALE_CENTER (7000), MAX_HEIGHT (8100);
+		
+		private double value;
+		private Stage (double value) {
+			this.value = value;
+		}
+	}
 	
 	public static final double MAX_HEIGHT = 8100; // in pulses 8744.25
 	
@@ -85,5 +96,26 @@ public class Elevator {
 	public void setOverrideEncoderBottom(boolean overrideEncoderBottom) {
 		this.overrideEncoderBottom = overrideEncoderBottom;
 	}
+	
+	public boolean isAboveStage (Stage stage) {
+		return stage.value < getCurrentHeight();
+	}
+	
+	/**
+	 * Will try to reach stage, returns true if arrived
+	 * @param stage
+	 */
+	public void elevateToStageFromBelow (Stage stage) {
+		if (isAboveStage (stage)) {
+			elevateUpDown (0);
+		}
+		else {
+			elevateUpDown (0.5);
+		}
+		
+	}
+
+	@Override
+	protected void initDefaultCommand() {}
 
 }

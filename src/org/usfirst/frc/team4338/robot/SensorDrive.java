@@ -65,9 +65,10 @@ public class SensorDrive extends Drive{
 	private Encoder leftEncoder;
 	private Encoder rightEncoder;
 
-	public SensorDrive(WPI_TalonSRX leftMotor, WPI_TalonSRX rightMotor, int pistonAPort, int pistonBPort, Encoder leftEncoder, Encoder rightEncoder) {
+	public SensorDrive(WPI_TalonSRX leftFirstMotor, WPI_TalonSRX leftSecondMotor, WPI_TalonSRX rightFirstMotor, WPI_TalonSRX rightSecondMotor
+			, int pistonAPort, int pistonBPort, Encoder leftEncoder, Encoder rightEncoder) {
 		
-		super (leftMotor, rightMotor, pistonAPort, pistonBPort);
+		super (leftFirstMotor, leftSecondMotor, rightFirstMotor, rightSecondMotor, pistonAPort, pistonBPort);
 		
 		this.leftEncoder = leftEncoder;
 		this.leftEncoder.setDistancePerPulse(EncoderConstants.B_BOT.distancePerPulse());

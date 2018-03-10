@@ -7,12 +7,11 @@
 
 package org.usfirst.frc.team4338.robot;
 
-import org.usfirst.frc.team4338.robot.autoPrograms.*;
-import org.usfirst.frc.team4338.robot.autoPrograms.center.CenterSwitchLeft;
-import org.usfirst.frc.team4338.robot.autoPrograms.center.CenterSwitchRight;
-import org.usfirst.frc.team4338.robot.autoPrograms.center.SwitchCenterNull;
-import org.usfirst.frc.team4338.robot.autoPrograms.side.StraightSwitch;
-import org.usfirst.frc.team4338.robot.autoPrograms.side.StraightSwitchWrong;
+import org.usfirst.frc.team4338.robot.autoCommands.AutoConstants;
+import org.usfirst.frc.team4338.robot.autoCommands.AutoStraight;
+import org.usfirst.frc.team4338.robot.autoCommands.sw.CenterSwitchLeft;
+import org.usfirst.frc.team4338.robot.autoCommands.sw.CenterSwitchRight;
+import org.usfirst.frc.team4338.robot.autoCommands.sw.StraightSwitch;
 import org.usfirst.frc.team4338.robot.autonomousData.GameInfo;
 import org.usfirst.frc.team4338.robot.autonomousData.StartingPosition;
 import org.usfirst.frc.team4338.robot.autonomousData.Target;
@@ -24,6 +23,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.command.Command;
+import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -61,16 +62,16 @@ public class Robot extends IterativeRobot {
 
 	public enum CANWiring {
 
-		DRIVE_LEFT (2),
+		DRIVE_FIRST_LEFT (2),
 		INTAKE_LEFT (3), 
 		ELEVATOR (4),
-		TEAMMATE_LIFTER_LEFT (5),
+		CLIMBER_LEFT (5),
 		FORK (6),
-		TEAMMATE_LIFTER_RIGHT (7),
+		CLIMBER_RIGHT (7),
 		INTAKE_RIGHT (8),
-		RAMP_LEFT (9),
-		RAMP_RIGHT (10),
-		DRIVE_RIGHT (11);
+		DRIVE_SECOND_LEFT (9),
+		DRIVE_SECOND_RIGHT (10),
+		DRIVE_FIRST_RIGHT (11);
 
 		private int m_port;
 		private CANWiring (int port) {
@@ -99,13 +100,12 @@ public class Robot extends IterativeRobot {
 
 	private SendableChooser<StartingPosition> m_startingPositionChooser = new SendableChooser<>();
 	private SendableChooser<Target> m_targetLocationChooser = new SendableChooser<>();
-	private AutonomousProgram autoProgram;
+	private Command autoProgram;
 
 	private SensorDrive drive;
 	private Elevator elevator;
 	private Intake intake;
 	private Fork fork;
-	private Ramp ramp;
 
 	private XboxController pilot;
 	private XboxController copilot;
@@ -121,8 +121,9 @@ public class Robot extends IterativeRobot {
 
 		initializeCameraConfig();
 
-		drive = new SensorDrive (new WPI_TalonSRX (CANWiring.DRIVE_LEFT.m_port), 
-				new WPI_TalonSRX (CANWiring.DRIVE_RIGHT.m_port), 
+		drive = new SensorDrive (
+				new WPI_TalonSRX (CANWiring.DRIVE_FIRST_LEFT.m_port), new WPI_TalonSRX (CANWiring.DRIVE_SECOND_LEFT.m_port) ,
+				new WPI_TalonSRX (CANWiring.DRIVE_FIRST_RIGHT.m_port), new WPI_TalonSRX (CANWiring.DRIVE_SECOND_RIGHT.m_port), 
 				PCMWiring.DRIVE_A.m_port, PCMWiring.DRIVE_B.m_port,
 				new Encoder (DIOWiring.DRIVE_LEFT_A.m_port, DIOWiring.DRIVE_LEFT_B.m_port),
 				new Encoder (DIOWiring.DRIVE_RIGHT_A.m_port, DIOWiring.DRIVE_RIGHT_B.m_port));
@@ -133,9 +134,6 @@ public class Robot extends IterativeRobot {
 				PCMWiring.INTAKE_A.m_port, PCMWiring.INTAKE_B.m_port);
 		fork = new Fork (CANWiring.FORK.m_port, DIOWiring.FORK_EXTENDED_SW.m_port, DIOWiring.FORK_RETRACTED_SW.m_port,
 				PCMWiring.GRIPPER_A.m_port, PCMWiring.GRIPPER_B.m_port, PCMWiring.RELEASE_A.m_port, PCMWiring.RELEASE_B.m_port);
-		ramp = new Ramp (CANWiring.RAMP_LEFT.m_port, CANWiring.RAMP_RIGHT.m_port,
-				CANWiring.TEAMMATE_LIFTER_LEFT.m_port, CANWiring.TEAMMATE_LIFTER_RIGHT.m_port,
-				DIOWiring.TEAMMATE_LIFTER_LEFT_SW.m_port, DIOWiring.TEAMMATE_LIFTER_RIGHT_SW.m_port);
 
 		pilot = new XboxController (0);
 		copilot = new XboxController (1);
@@ -200,13 +198,13 @@ public class Robot extends IterativeRobot {
 			switch (m_startPos) {
 
 			case CENTER:
-				autoProgram = new SwitchCenterNull(drive, elevator);
+				autoProgram = new AutoStraight (drive, AutoConstants.DISTANCE_TO_SWITCH);
 				break;
 			case LEFT_SIDE: case RIGHT_SIDE:
-				autoProgram = new DriveStraight(drive, 4000);
+				autoProgram = new AutoStraight (drive, AutoConstants.DISTANCE_TO_SWITCH_SIDE);
 				break;
 			case LEFT_SWITCH: case RIGHT_SWITCH:
-				autoProgram = new DriveStraight(drive, 2800);
+				autoProgram = new AutoStraight (drive, AutoConstants.DISTANCE_TO_SWITCH_SIDE);
 				break;
 
 			}
@@ -219,25 +217,24 @@ public class Robot extends IterativeRobot {
 			case CENTER:
 
 				if (m_gameInfo.isOurSwitchLeft()) {
-					autoProgram = new CenterSwitchLeft (drive, fork, elevator);
+					autoProgram = new CenterSwitchLeft (drive, elevator, fork, intake);
 				}
 				else {
-					autoProgram = new CenterSwitchRight (drive, fork, elevator);
+					autoProgram = new CenterSwitchRight (drive, elevator, fork, intake);
 				}
 
 				break;
 			case LEFT_SIDE: case RIGHT_SIDE:
-				
-				
+			
 				
 				break;
 			case LEFT_SWITCH: case RIGHT_SWITCH:
 
 				if (m_gameInfo.isAllignedWithPos(m_startPos)) {
-					autoProgram = new StraightSwitch(drive, fork, elevator);
+					autoProgram = new StraightSwitch(drive, elevator, fork, intake);
 				}
 				else {
-					autoProgram = new StraightSwitchWrong(drive, elevator);
+					autoProgram = new AutoStraight (drive, AutoConstants.DISTANCE_TO_SWITCH);
 				}
 				break;
 
@@ -253,7 +250,7 @@ public class Robot extends IterativeRobot {
 		resetMode();
 
 		if (autoProgram != null) {
-			autoProgram.initialize();
+			autoProgram.start();
 		}
 
 	}
@@ -264,16 +261,11 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		if (autoProgram != null) {
-			autoProgram.update();
-		}
+		Scheduler.getInstance().run();
 	}
+	
 	public void teleopInit () {
 		drive.setInverted(false);
-		if (autoProgram != null) {
-			autoProgram.stop();
-		}
-		ramp.resetLiftingTeammate();
 	}
 
 	/**
@@ -357,25 +349,25 @@ public class Robot extends IterativeRobot {
 			fork.toggleReleaseFork();
 		}
 
-		if (copilot.getTriggerAxis(Hand.kLeft) > 0.5) {
-			ramp.lowerRamp();
-		}
-		else if (SmartDashboard.getBoolean("Lift Ramp", false)) {
-			ramp.liftRamp();
-		}
-		else {
-			ramp.stopRamp();
-		}
-
-		if (copilot.getTriggerAxis(Hand.kRight) > 0.5) {
-			ramp.liftTeammate();
-		}
-		else if (SmartDashboard.getBoolean("Lower Teammate", false)) {
-			ramp.lowerTeammate();
-		}
-		else {
-			ramp.stopTeammate();
-		}
+//		if (copilot.getTriggerAxis(Hand.kLeft) > 0.5) {
+//			ramp.lowerRamp();
+//		}
+//		else if (SmartDashboard.getBoolean("Lift Ramp", false)) {
+//			ramp.liftRamp();
+//		}
+//		else {
+//			ramp.stopRamp();
+//		}
+//
+//		if (copilot.getTriggerAxis(Hand.kRight) > 0.5) {
+//			ramp.liftTeammate();
+//		}
+//		else if (SmartDashboard.getBoolean("Lower Teammate", false)) {
+//			ramp.lowerTeammate();
+//		}
+//		else {
+//			ramp.stopTeammate();
+//		}
 
 		if (SmartDashboard.getBoolean("Elevator Coast", false)) {
 			elevator.disableBrakeMode();

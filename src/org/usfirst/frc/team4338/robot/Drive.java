@@ -5,33 +5,48 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.SpeedControllerGroup;
+import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
-public class Drive extends DifferentialDrive {
+public class Drive extends Subsystem {
+	
+	private DifferentialDrive drive;
 
 	private DoubleSolenoid pistons;
 
 	private boolean inverted = false;
 
-	public Drive(WPI_TalonSRX leftMotor, WPI_TalonSRX rightMotor, int pistonAPort, int pistonBPort) {
+	public Drive(WPI_TalonSRX leftFirstMotor, WPI_TalonSRX leftSecondMotor, WPI_TalonSRX rightFirstMotor, WPI_TalonSRX rightSecondMotor,
+			int pistonAPort, int pistonBPort) {
 
-		super(leftMotor, rightMotor);
+		drive = new DifferentialDrive (new SpeedControllerGroup (leftFirstMotor, leftSecondMotor), new SpeedControllerGroup (rightFirstMotor, rightSecondMotor));
 
 		// Disable brake mode
-		leftMotor.setNeutralMode(NeutralMode.Coast);
-		rightMotor.setNeutralMode(NeutralMode.Coast);
+		leftFirstMotor.setNeutralMode(NeutralMode.Coast);
+		leftSecondMotor.setNeutralMode(NeutralMode.Coast);
+		rightFirstMotor.setNeutralMode(NeutralMode.Coast);
+		rightSecondMotor.setNeutralMode(NeutralMode.Coast);
 
 		// Initialize the piston
 		this.pistons = new DoubleSolenoid (pistonAPort, pistonBPort);
 
 	}
+	
+	public void stop() {
+		tankDrive (0,0);
+	}
+	
+	public void tankDrive (double left, double right) {
+		drive.tankDrive(left, right);
+	}
 
 	public void arcadeDrive(double xSpeed, double zRotation, boolean squaredInputs) {
-		super.arcadeDrive(isInverted()?-xSpeed:xSpeed, -zRotation, squaredInputs);
+		drive.arcadeDrive(isInverted()?-xSpeed:xSpeed, -zRotation, squaredInputs);
 	}
 
 	public void curvatureDrive(double xSpeed, double zRotation, boolean isQuickTurn) {
-		super.curvatureDrive(isInverted()?-xSpeed:xSpeed, zRotation, isQuickTurn);
+		drive.curvatureDrive(isInverted()?-xSpeed:xSpeed, zRotation, isQuickTurn);
 	}
 
 	public void shiftLowGear () {
@@ -92,5 +107,8 @@ public class Drive extends DifferentialDrive {
 		}
 		tankDrive(y - x, y + x);
 	}
+
+	@Override
+	protected void initDefaultCommand() {}
 
 }
