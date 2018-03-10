@@ -1,4 +1,6 @@
-package org.usfirst.frc.team4338.robot;
+package org.usfirst.frc.team4338.robot.systems;
+
+import org.usfirst.frc.team4338.robot.Robot;
 
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;

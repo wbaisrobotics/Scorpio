@@ -17,6 +17,11 @@ import org.usfirst.frc.team4338.robot.autoCommands.sw.StraightSwitch;
 import org.usfirst.frc.team4338.robot.autonomousData.GameInfo;
 import org.usfirst.frc.team4338.robot.autonomousData.StartingPosition;
 import org.usfirst.frc.team4338.robot.autonomousData.Target;
+import org.usfirst.frc.team4338.robot.systems.Climber;
+import org.usfirst.frc.team4338.robot.systems.Elevator;
+import org.usfirst.frc.team4338.robot.systems.Fork;
+import org.usfirst.frc.team4338.robot.systems.Intake;
+import org.usfirst.frc.team4338.robot.systems.SensorDrive;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
@@ -94,8 +99,6 @@ public class Robot extends IterativeRobot {
 		}
 	}
 
-	public static final int AUTONOMOUS_PERIOD = 20; //ms
-
 	private GameInfo m_gameInfo;
 	private StartingPosition m_startPos;
 	private Target m_autonomousTarget;	
@@ -108,6 +111,7 @@ public class Robot extends IterativeRobot {
 	private Elevator elevator;
 	private Intake intake;
 	private Fork fork;
+	private Climber climber;
 
 	private XboxController pilot;
 	private XboxController copilot;
@@ -136,6 +140,8 @@ public class Robot extends IterativeRobot {
 				PCMWiring.INTAKE_A.m_port, PCMWiring.INTAKE_B.m_port);
 		fork = new Fork (CANWiring.FORK.m_port, DIOWiring.FORK_EXTENDED_SW.m_port, DIOWiring.FORK_RETRACTED_SW.m_port,
 				PCMWiring.GRIPPER_A.m_port, PCMWiring.GRIPPER_B.m_port, PCMWiring.RELEASE_A.m_port, PCMWiring.RELEASE_B.m_port);
+		
+		climber = new Climber (new WPI_TalonSRX (CANWiring.CLIMBER_LEFT.m_port), new WPI_TalonSRX (CANWiring.CLIMBER_RIGHT.m_port));
 
 		pilot = new XboxController (0);
 		copilot = new XboxController (1);
@@ -359,26 +365,6 @@ public class Robot extends IterativeRobot {
 		if (copilot.getStartButton() && copilot.getBackButtonPressed()) {
 			fork.toggleReleaseFork();
 		}
-
-//		if (copilot.getTriggerAxis(Hand.kLeft) > 0.5) {
-//			ramp.lowerRamp();
-//		}
-//		else if (SmartDashboard.getBoolean("Lift Ramp", false)) {
-//			ramp.liftRamp();
-//		}
-//		else {
-//			ramp.stopRamp();
-//		}
-//
-//		if (copilot.getTriggerAxis(Hand.kRight) > 0.5) {
-//			ramp.liftTeammate();
-//		}
-//		else if (SmartDashboard.getBoolean("Lower Teammate", false)) {
-//			ramp.lowerTeammate();
-//		}
-//		else {
-//			ramp.stopTeammate();
-//		}
 
 		if (SmartDashboard.getBoolean("Elevator Coast", false)) {
 			elevator.disableBrakeMode();

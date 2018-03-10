@@ -1,6 +1,6 @@
 package org.usfirst.frc.team4338.robot.autoCommands;
 
-import org.usfirst.frc.team4338.robot.Intake;
+import org.usfirst.frc.team4338.robot.systems.Intake;
 
 import edu.wpi.first.wpilibj.command.TimedCommand;
 

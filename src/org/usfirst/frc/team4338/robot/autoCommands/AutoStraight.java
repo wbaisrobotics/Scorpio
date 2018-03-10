@@ -1,7 +1,7 @@
 package org.usfirst.frc.team4338.robot.autoCommands;
 
 import org.usfirst.frc.team4338.robot.Robot;
-import org.usfirst.frc.team4338.robot.SensorDrive;
+import org.usfirst.frc.team4338.robot.systems.SensorDrive;
 
 import edu.wpi.first.wpilibj.command.Command;
 
