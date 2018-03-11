@@ -19,9 +19,9 @@ public class CenterSwitchRight extends CommandGroup {
     	
         addSequential (new AutoStraight(drive, 0.5));
         addSequential (new AutoTurn (drive, 55));
-        addSequential (new AutoStraight(drive, 1.2));
+        addSequential (new AutoStraight(drive, 1.0));
         addSequential (new AutoTurn (drive, -55));
-        addSequential (new AutoStraight(drive, 1.2));
+        addSequential (new AutoStraight(drive, 1.0));
         
         addSequential (new AutoLiftElevator (elevator, Stage.SWITCH));
         addSequential (new AutoExtendFork (fork));

@@ -26,7 +26,7 @@ public class SensorDrive extends Drive{
 	 *
 	 */
 	public static enum EncoderConstants {
-		A_BOT (0.0785, 20, (1/26.04), 0, 0, 0), B_BOT (0.0785, 20, (1/7.5), 0.5, 0, 0);
+		A_BOT (0.0785, 20, (1/26.04), 0, 0, 0), B_BOT (0.0785, 20, (1/7.5), 0.4, 0, 0);
 		
 		/** The radius of the wheel (in meters) **/
 		private double wheelRadius;
