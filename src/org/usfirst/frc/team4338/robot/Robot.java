@@ -172,9 +172,6 @@ public class Robot extends IterativeRobot {
 		m_targetLocationChooser.addObject("Scale", Target.SCALE);
 		SmartDashboard.putData("Target Autonomous", m_targetLocationChooser);
 
-		SmartDashboard.putBoolean("Lift Ramp", false);
-		SmartDashboard.putBoolean("Lower Teammate", false);
-
 		SmartDashboard.putBoolean("Elevator Coast", false);
 		SmartDashboard.putBoolean("Override Elevator Encoder Bottom", false);
 		SmartDashboard.putBoolean("Zero Elevator", false);
@@ -348,15 +345,26 @@ public class Robot extends IterativeRobot {
 		//		else {
 		//			fork.stop();
 		//		}
+		
+		// If all three pressed, go down (used for reset in pit or in unexpected scenario in game) 
+		if (copilot.getStartButton() && copilot.getBackButton() && copilot.getBumper(Hand.kLeft)) {
+			climber.down();
+		}
+		// If only these two pressed, climb up (used in end of match)
+		else if (copilot.getStartButton() && copilot.getBackButton()) {
+			climber.up();
+		}
+		// Else, stop climbing (need to hold for climbing)
+		else {
+			climber.stop();
+		}
 
 		// Elevate the elevator according to the axis
 		elevator.elevate(-copilot.getY(Hand.kLeft));
 
 
 		/* --------- Pilot --------- */
-
-		drive.arcadeDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), true);
-
+		
 		// Toggle the gear speed for driving
 		if (pilot.getBumperPressed(Hand.kLeft)) {
 			drive.toggleGearSpeed();
@@ -366,6 +374,8 @@ public class Robot extends IterativeRobot {
 		if (pilot.getYButtonPressed()) {
 			drive.toggleInverted();
 		}
+
+		drive.arcadeDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), true);
 
 	}
 
