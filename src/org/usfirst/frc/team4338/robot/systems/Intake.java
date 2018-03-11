@@ -94,7 +94,9 @@ public class Intake extends Subsystem{
 		return (leftMotor.get()!=0 && rightMotor.get()!=0);
 	}
 
-	@Override
+	/**
+	 * No default command
+	 */
 	protected void initDefaultCommand() {}
 
 }

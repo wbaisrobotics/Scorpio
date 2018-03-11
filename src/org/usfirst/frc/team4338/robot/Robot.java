@@ -140,18 +140,18 @@ public class Robot extends IterativeRobot {
 				new Encoder (DIOWiring.ELEVATOR_ENCODER_A.m_port, DIOWiring.ELEVATOR_ENCODER_B.m_port),
 				new DigitalInput (DIOWiring.ELEVATOR_BOTTOM_SW.m_port)
 				);
-		
+
 		intake = new Intake (
 				new WPI_TalonSRX(CANWiring.INTAKE_LEFT.m_port),
 				new WPI_TalonSRX(CANWiring.INTAKE_RIGHT.m_port),
 				new DoubleSolenoid(PCMWiring.INTAKE_A.m_port, PCMWiring.INTAKE_B.m_port));
-		
+
 		fork = new Fork (
 				new WPI_TalonSRX(CANWiring.FORK.m_port),
 				new DigitalInput (DIOWiring.FORK_EXTENDED_SW.m_port),
 				new DigitalInput (DIOWiring.FORK_RETRACTED_SW.m_port)
 				);
-		
+
 		climber = new Climber (
 				new WPI_TalonSRX (CANWiring.CLIMBER_LEFT.m_port),
 				new WPI_TalonSRX (CANWiring.CLIMBER_RIGHT.m_port)
@@ -247,16 +247,16 @@ public class Robot extends IterativeRobot {
 
 				break;
 			case LEFT_SIDE: case RIGHT_SIDE:
-				
+
 				if (m_gameInfo.isAllignedWithPos(m_startPos)) {
 					autoProgram = new SideSwitch (drive, elevator, fork, intake, m_startPos == StartingPosition.LEFT_SIDE);
 				}
 				else {
 					autoProgram = new SideSwitchOtherSide (drive, elevator, fork, intake, m_startPos == StartingPosition.LEFT_SIDE);
 				}
-				
+
 				//autoProgram = new AutoTurn (drive, 90, 1.0);
-				
+
 				break;
 			case LEFT_SWITCH: case RIGHT_SWITCH:
 
@@ -293,10 +293,10 @@ public class Robot extends IterativeRobot {
 	public void autonomousPeriodic() {
 		Scheduler.getInstance().run();
 	}
-	
+
 	public void teleopInit () {
 		drive.setInverted(false);
-		
+
 	}
 
 	/**
@@ -304,31 +304,28 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		
+
 		/* --------- SmartDashboard --------- */
-		if (SmartDashboard.getBoolean("Elevator Coast", false)) {
-			elevator.disableBrakeMode();
-		}
-		else {
-			elevator.enableBrakeMode();
-		}
+
+		elevator.setBrakeMode(!SmartDashboard.getBoolean("Elevator Coast", false));
 
 		if (SmartDashboard.getBoolean("Zero Elevator", false)) {
 			elevator.resetCurrentHeight();
 		}
-		
+
 		elevator.setOverrideEncoderBottom(SmartDashboard.getBoolean("Override Elevator Encoder Bottom", false));
-		
+
 		SmartDashboard.putBoolean("Intake Running", intake.wheelsRunning());
 
-		
+
 		/* --------- Copilot --------- */
-		
+
 		// Toggle retracting the intake
 		if (copilot.getBumperPressed(Hand.kRight)) {
 			intake.toggleArms();
 		}
-		
+
+		// Hold for intake controls
 		if (copilot.getAButton()) {
 			intake.cubeIn();
 		}
@@ -342,21 +339,22 @@ public class Robot extends IterativeRobot {
 			intake.stop();
 		}
 
-//		if (copilot.getBButton()) {
-//			fork.retract();
-//		}
-//		else if (copilot.getAButton()) {
-//			fork.extend();
-//		}
-//		else {
-//			fork.stop();
-//		}
+		//		if (copilot.getBButton()) {
+		//			fork.retract();
+		//		}
+		//		else if (copilot.getAButton()) {
+		//			fork.extend();
+		//		}
+		//		else {
+		//			fork.stop();
+		//		}
 
+		// Elevate the elevator according to the axis
 		elevator.elevate(-copilot.getY(Hand.kLeft));
 
 
 		/* --------- Pilot --------- */
-		
+
 		drive.arcadeDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), true);
 
 		// Toggle the gear speed for driving
@@ -370,7 +368,7 @@ public class Robot extends IterativeRobot {
 		}
 
 	}
-	
+
 	public void testInit() {
 		drive.calibrateGyro();
 	}

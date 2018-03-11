@@ -131,14 +131,22 @@ public class Elevator extends Subsystem {
 	 * Enables brake mode on the TalonSRX programatically
 	 */
 	public void enableBrakeMode() {
-		this.motor.setNeutralMode(NeutralMode.Brake);
+		setBrakeMode(true);
 	}
 	
 	/**
 	 * Disables brake mode on the TalonSRX programatically
 	 */
 	public void disableBrakeMode() {
-		this.motor.setNeutralMode(NeutralMode.Coast);
+		setBrakeMode(false);
+	}
+	
+	/**
+	 * Sets the brake mode of the TalonSRX
+	 * @param brakeMode - true cooresponds to enabling brake mode
+	 */
+	public void setBrakeMode (boolean brakeMode) {
+		this.motor.setNeutralMode(brakeMode?NeutralMode.Brake:NeutralMode.Coast);
 	}
 
 	/**
