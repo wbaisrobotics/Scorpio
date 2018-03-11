@@ -41,7 +41,7 @@ public class AutoStraightFullPower extends Command {
 	// Called once after isFinished returns true
 	protected void end() {
 		drive.stop();
-		System.out.println("Finished AutoStraight at " + Robot.timeSinceStart());
+		System.out.println("Finished AutoStraightFullPower at " + Robot.timeSinceStart());
 	}
 
 	// Called when another command which requires one or more of the same

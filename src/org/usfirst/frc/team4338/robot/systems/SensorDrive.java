@@ -26,7 +26,7 @@ public class SensorDrive extends Drive{
 	 *
 	 */
 	public static enum EncoderConstants {
-		A_BOT (0.0785, 20, (1/26.04), 0, 0, 0), B_BOT (0.0785, 20, (1/7.5), 0.4, 0, 0);
+		A_BOT (0.0785, 20, (1/26.04), 0, 0, 0), B_BOT (0.0785, 20, (1/7.5), 0.65, 0, 0);
 		
 		/** The radius of the wheel (in meters) **/
 		private double wheelRadius;
@@ -178,7 +178,7 @@ public class SensorDrive extends Drive{
 			
 			public void setPIDSourceType(PIDSourceType pidSource) {}
 
-			public PIDSourceType getPIDSourceType() {return null;}
+			public PIDSourceType getPIDSourceType() {return PIDSourceType.kDisplacement;}
 
 			public double pidGet() {return getAvgDistance();}
 			
@@ -225,11 +225,11 @@ public class SensorDrive extends Drive{
 		
 		double turn = gyroTurnPID.get();
 		
-		if (turn < 0 && turn > -0.3) {
-			turn = -0.3;
+		if (turn < 0 && turn > -0.35) {
+			turn = -0.35;
 		}
-		else if (turn > 0 && turn < 0.3) {
-			turn = 0.3;
+		else if (turn > 0 && turn < 0.35) {
+			turn = 0.35;
 		}
 		arcadeDrive (magnitude, turn, false);
 	}

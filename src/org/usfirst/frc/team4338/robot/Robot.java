@@ -185,17 +185,8 @@ public class Robot extends IterativeRobot {
 	}
 
 	/**
-	 * This autonomous (along with the chooser code above) shows how to select
-	 * between different autonomous modes using the dashboard. The sendable
-	 * chooser code works with the Java SmartDashboard. If you prefer the
-	 * LabVIEW Dashboard, remove all of the chooser code and uncomment the
-	 * getString line to get the auto name from the text box below the Gyro
-	 *
-	 * <p>You can add additional auto modes by adding additional comparisons to
-	 * the switch structure below with additional strings. If using the
-	 * SendableChooser make sure to add them to the chooser code above as well.
+	 * Choses which autonomous to schedule 
 	 */
-	@Override
 	public void autonomousInit() {
 
 		m_gameInfo = GameInfo.fromGameMessage(DriverStation.getInstance().getGameSpecificMessage());
@@ -223,7 +214,7 @@ public class Robot extends IterativeRobot {
 				autoProgram = new AutoStraight (drive, AutoConstants.DISTANCE_TO_SWITCH_SIDE);
 				break;
 			case LEFT_SWITCH: case RIGHT_SWITCH:
-				autoProgram = new AutoStraight (drive, AutoConstants.DISTANCE_TO_SWITCH_SIDE);
+				autoProgram = new AutoStraight (drive, AutoConstants.DISTANCE_TO_SWITCH);
 				break;
 
 			}
@@ -284,20 +275,21 @@ public class Robot extends IterativeRobot {
 
 
 	/**
-	 * This function is called periodically during autonomous.
+	 * Uses the scheduler to run the autonomous command chosen
 	 */
-	@Override
 	public void autonomousPeriodic() {
 		Scheduler.getInstance().run();
 	}
 
+	/**
+	 * Makes sure to set drive inverted to false in the beginning of teleop
+	 */
 	public void teleopInit () {
 		drive.setInverted(false);
-
 	}
 
 	/**
-	 * This function is called periodically during operator control.
+	 * Reads input from the controls and outputs to the subsystems
 	 */
 	@Override
 	public void teleopPeriodic() {
@@ -328,9 +320,11 @@ public class Robot extends IterativeRobot {
 		}
 		else if (copilot.getXButton()) {
 			intake.cubeOut();
+			intake.openArms();
 		}
 		else if (copilot.getYButton()) {
 			intake.cubeOutFullPower();
+			intake.openArms();
 		}
 		else {
 			intake.stop();
@@ -376,21 +370,28 @@ public class Robot extends IterativeRobot {
 			drive.toggleInverted();
 		}
 
+		// Arcade drive using left joystick for x speed, and right joystick for z rotation
 		drive.arcadeDrive(pilot.getY(Hand.kLeft), pilot.getX(Hand.kRight), true);
 
 	}
 
+	/**
+	 * Calibrates the gyro in test mode (robot must be stationary)
+	 */
 	public void testInit() {
 		drive.calibrateGyro();
 	}
 
 	/**
-	 * This function is called periodically during test mode.
+	 * Does nothing currently.
 	 */
-	@Override
 	public void testPeriodic() {	
 	}
 
+	/**
+	 * Initializes the settings which allow for the dashbaords to view 
+	 * the camera streasm from the raspberry pi.
+	 */
 	private void initializeCameraConfig(){
 		NetworkTableInstance.getDefault()
 		.getEntry("/CameraPublisher/ForkCamera/streams")
@@ -402,10 +403,18 @@ public class Robot extends IterativeRobot {
 				{"mjpeg:http://10.43.38.8:1182/?action=stream"});
 	}
 
+	/**
+	 * Returns the start time of the match (as given by System.currentTimeMillis())
+	 * @return
+	 */
 	public static long getStartTime () {
 		return startTime;
 	}
 
+	/**
+	 * Returns the time since the beginning of the match
+	 * @return
+	 */
 	public static long timeSinceStart () {
 		return System.currentTimeMillis() - startTime;
 	}

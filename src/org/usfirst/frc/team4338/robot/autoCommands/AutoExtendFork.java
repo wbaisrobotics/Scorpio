@@ -1,5 +1,6 @@
 package org.usfirst.frc.team4338.robot.autoCommands;
 
+import org.usfirst.frc.team4338.robot.Robot;
 import org.usfirst.frc.team4338.robot.systems.Fork;
 
 import edu.wpi.first.wpilibj.command.Command;
@@ -32,6 +33,7 @@ public class AutoExtendFork extends Command {
     // Called once after isFinished returns true
     protected void end() {
     		fork.stop();
+    		System.out.println("Finished AutoExtendFork at " + Robot.timeSinceStart());
     }
 
     // Called when another command which requires one or more of the same

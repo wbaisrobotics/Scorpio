@@ -8,12 +8,12 @@ import edu.wpi.first.wpilibj.command.TimedCommand;
 /**
  *
  */
-public class AutoReleaseCube extends TimedCommand {
+public class AutoIntakeCube extends TimedCommand {
 	
 	private Intake intake;
 
-    public AutoReleaseCube(Intake intake, double timeout) {
-    		super (timeout);
+    public AutoIntakeCube(Intake intake, double timeout) {
+        super(timeout);
         this.intake = intake;
         requires (intake);
     }
@@ -21,17 +21,18 @@ public class AutoReleaseCube extends TimedCommand {
     // Called just before this Command runs the first time
     protected void initialize() {
     		intake.openArms();
-    		intake.cubeOut();
+    		intake.cubeIn();
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
     }
 
-    // Called once after isFinished returns true
+    // Called once after timeout
     protected void end() {
+    		intake.closeArms();
     		intake.stop();
-    		System.out.println("Finished AutoReleaseCube at " + Robot.timeSinceStart());
+    		System.out.println("Finished AutoIntakeCube at " + Robot.timeSinceStart());
     }
 
     // Called when another command which requires one or more of the same

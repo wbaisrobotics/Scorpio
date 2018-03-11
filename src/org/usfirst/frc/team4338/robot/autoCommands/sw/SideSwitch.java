@@ -26,9 +26,9 @@ public class SideSwitch extends CommandGroup {
 		addSequential (new AutoTurn (drive, fromLeftSide?90:-90));
 		addSequential (new AutoStraight (drive, 0.6));
 
-		addSequential (new AutoLiftElevator (elevator, Stage.SWITCH));
-		addSequential (new AutoExtendFork (fork));
-		addSequential (new AutoReleaseCube(intake));
+//		addSequential (new AutoLiftElevator (elevator, Stage.SWITCH));
+//		addSequential (new AutoExtendFork (fork));
+		addSequential (new AutoReleaseCube(intake, 1.0));
 
 	}
 }

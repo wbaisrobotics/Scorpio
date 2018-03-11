@@ -19,6 +19,6 @@ public class StraightSwitch extends CommandGroup {
         addSequential (new AutoStraight(drive, AutoConstants.DISTANCE_TO_SWITCH));
         addSequential (new AutoLiftElevator (elevator, Stage.SWITCH));
         addSequential (new AutoExtendFork (fork));
-        addSequential (new AutoReleaseCube(intake));
+        addSequential (new AutoReleaseCube(intake, 1.0));
     }
 }

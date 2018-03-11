@@ -1,5 +1,6 @@
 package org.usfirst.frc.team4338.robot.autoCommands;
 
+import org.usfirst.frc.team4338.robot.Robot;
 import org.usfirst.frc.team4338.robot.systems.Elevator;
 import org.usfirst.frc.team4338.robot.systems.Elevator.Stage;
 
@@ -34,6 +35,7 @@ public class AutoLiftElevator extends Command {
     // Called once after isFinished returns true
     protected void end() {
     		elevator.stop();
+    		System.out.println("Finished AutoLiftElevator at " + Robot.timeSinceStart());
     }
 
     // Called when another command which requires one or more of the same
