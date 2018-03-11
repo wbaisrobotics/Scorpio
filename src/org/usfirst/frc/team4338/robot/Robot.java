@@ -335,17 +335,18 @@ public class Robot extends IterativeRobot {
 		else {
 			intake.stop();
 		}
-
-		//		if (copilot.getBButton()) {
-		//			fork.retract();
-		//		}
-		//		else if (copilot.getAButton()) {
-		//			fork.extend();
-		//		}
-		//		else {
-		//			fork.stop();
-		//		}
 		
+		// Use POV for Fork controls: up cooresponds to extending, down to retracting (while held)
+		if (copilot.getPOV()== 0) {
+			fork.extend();
+		}
+		else if (copilot.getPOV() == 180) {
+			fork.retract();
+		}
+		else {
+			fork.stop();
+		}
+
 		// If all three pressed, go down (used for reset in pit or in unexpected scenario in game) 
 		if (copilot.getStartButton() && copilot.getBackButton() && copilot.getBumper(Hand.kLeft)) {
 			climber.down();
