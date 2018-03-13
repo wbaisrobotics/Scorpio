@@ -9,6 +9,7 @@ package org.usfirst.frc.team4338.robot;
 
 import org.usfirst.frc.team4338.robot.autoCommands.AutoConstants;
 import org.usfirst.frc.team4338.robot.autoCommands.AutoStraight;
+import org.usfirst.frc.team4338.robot.autoCommands.AutoTurn;
 import org.usfirst.frc.team4338.robot.autoCommands.sw.CenterSwitchLeft;
 import org.usfirst.frc.team4338.robot.autoCommands.sw.CenterSwitchRight;
 import org.usfirst.frc.team4338.robot.autoCommands.sw.SideSwitch;
@@ -71,16 +72,16 @@ public class Robot extends IterativeRobot {
 
 	public enum CANWiring {
 
-		DRIVE_FIRST_LEFT (2),
-		INTAKE_LEFT (3), 
-		ELEVATOR (4),
-		CLIMBER_LEFT (5),
-		FORK (6),
-		CLIMBER_RIGHT (7),
+		DRIVE_FIRST_LEFT (4),
+		INTAKE_LEFT (9), 
+		ELEVATOR (11),
+		CLIMBER_LEFT (7),
+		FORK (10),
+		CLIMBER_RIGHT (6),
 		INTAKE_RIGHT (8),
-		DRIVE_SECOND_LEFT (9),
-		DRIVE_SECOND_RIGHT (10),
-		DRIVE_FIRST_RIGHT (11);
+		DRIVE_SECOND_LEFT (5),
+		DRIVE_SECOND_RIGHT (3),
+		DRIVE_FIRST_RIGHT (2);
 
 		private int m_port;
 		private CANWiring (int port) {
@@ -243,8 +244,6 @@ public class Robot extends IterativeRobot {
 					autoProgram = new SideSwitchOtherSide (drive, elevator, fork, intake, m_startPos == StartingPosition.LEFT_SIDE);
 				}
 
-				//autoProgram = new AutoTurn (drive, 90, 1.0);
-
 				break;
 			case LEFT_SWITCH: case RIGHT_SWITCH:
 
@@ -260,6 +259,8 @@ public class Robot extends IterativeRobot {
 
 			break;
 		case SCALE:
+			
+			autoProgram = new AutoTurn (drive, 90, 0);
 
 			break;
 

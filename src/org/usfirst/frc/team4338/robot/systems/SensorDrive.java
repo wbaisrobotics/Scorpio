@@ -26,7 +26,7 @@ public class SensorDrive extends Drive{
 	 *
 	 */
 	public static enum EncoderConstants {
-		A_BOT (0.0785, 20, (1/26.04), 0, 0, 0), B_BOT (0.0785, 20, (1/7.5), 0.65, 0, 0);
+		A_BOT (0.0785, 20, (1/26.04), 0.65, 0, 0), B_BOT (0.0785, 20, (1/7.5), 0.65, 0, 0);
 		
 		/** The radius of the wheel (in meters) **/
 		private double wheelRadius;
@@ -114,7 +114,7 @@ public class SensorDrive extends Drive{
 	 *
 	 */
 	public static enum GyroConstants {
-		A_BOT (0.03, 0.015, 0, 0), B_BOT (0.03, 0.011, 0.00001, 0.0136);
+		A_BOT (0.03, 0.011, 0.00001, 0.0136), B_BOT (0.03, 0.011, 0.00001, 0.0136);
 		
 		/** The P term used in a PID controller for driving straight **/
 		private double straightKp;
@@ -161,20 +161,20 @@ public class SensorDrive extends Drive{
 		super (leftFirstMotor, leftSecondMotor, rightFirstMotor, rightSecondMotor, piston);
 		
 		this.leftEncoder = leftEncoder;
-		this.leftEncoder.setDistancePerPulse(EncoderConstants.B_BOT.distancePerPulse());
+		this.leftEncoder.setDistancePerPulse(EncoderConstants.A_BOT.distancePerPulse());
 		this.rightEncoder = rightEncoder;
-		this.rightEncoder.setDistancePerPulse(EncoderConstants.B_BOT.distancePerPulse());
+		this.rightEncoder.setDistancePerPulse(EncoderConstants.A_BOT.distancePerPulse());
 
 		gyro = new ADXRS450_Gyro();
 		
-		gyroTurnPID = new PIDController (GyroConstants.B_BOT.turnKp, GyroConstants.B_BOT.turnKi, GyroConstants.B_BOT.turnKd, gyro, new PIDOutput() {
+		gyroTurnPID = new PIDController (GyroConstants.A_BOT.turnKp, GyroConstants.A_BOT.turnKi, GyroConstants.A_BOT.turnKd, gyro, new PIDOutput() {
 			public void pidWrite(double output) {}
 		});
 		gyroTurnPID.setOutputRange(-0.7, 0.7);
 		
 		SmartDashboard.putData("Gyro Turn PID Controller" , gyroTurnPID);
 		
-		encoderDrivePID = new PIDController (EncoderConstants.B_BOT.kP, EncoderConstants.B_BOT.kI, EncoderConstants.B_BOT.kD, new PIDSource() {
+		encoderDrivePID = new PIDController (EncoderConstants.A_BOT.kP, EncoderConstants.A_BOT.kI, EncoderConstants.A_BOT.kD, new PIDSource() {
 			
 			public void setPIDSourceType(PIDSourceType pidSource) {}
 
@@ -196,7 +196,7 @@ public class SensorDrive extends Drive{
 	 * @param xSpeed
 	 */
 	public void gyroStraight (double xSpeed) {
-		arcadeDrive (xSpeed, -getGyroAngle()*GyroConstants.B_BOT.straightKp, false);
+		arcadeDrive (xSpeed, -getGyroAngle()*GyroConstants.A_BOT.straightKp, false);
 	}
 	
 	/**
